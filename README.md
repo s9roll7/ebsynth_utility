@@ -6,16 +6,16 @@
 ## Example
 
 #### sample 1
-![sample 1](imgs/sample1.mp4 "sample 1")
+<div><video controls src="imgs/sample1.mp4" muted="false"></video></div>
 
 #### sample 2
-![sample 2](imgs/sample2.mp4 "sample 2")
+<div><video controls src="imgs/sample2.mp4" muted="false"></video></div>
 
 ## Installation
-1.Install [ffmpeg](https://ffmpeg.org/) for your operating system
-  https://www.geeksforgeeks.org/how-to-install-ffmpeg-on-windows/
-2.Install [Ebsynth](https://ebsynth.com/)
-3.Use the Extensions tab of the webui to [Install from URL]
+- Install [ffmpeg](https://ffmpeg.org/) for your operating system
+  (https://www.geeksforgeeks.org/how-to-install-ffmpeg-on-windows/)
+- Install [Ebsynth](https://ebsynth.com/)
+- Use the Extensions tab of the webui to [Install from URL]
 
 ## Usage
 - Go to [Ebsynth Utility] tab
