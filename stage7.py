@@ -120,6 +120,8 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate):
     
     for i in range(start, end+1):
         
+        print(str(i) + " / " + str(end))
+
         if next_clip == -1:
             break
         
