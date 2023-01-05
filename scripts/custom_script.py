@@ -23,6 +23,15 @@ def remove_pngs_in_dir(path):
         os.remove(png)
 
 
+def resize_img(img, w, h):
+    if img.shape[0] + img.shape[1] < h + w:
+        interpolation = interpolation=cv2.INTER_CUBIC
+    else:
+        interpolation = interpolation=cv2.INTER_AREA
+
+    return cv2.resize(img, (w, h), interpolation=interpolation)
+
+
 class Script(scripts.Script):
     face_detector = None
     face_merge_mask_filename = "face_crop_img2img_mask.png"
@@ -50,17 +59,27 @@ class Script(scripts.Script):
         
         with gr.Group():
             is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
-            max_crop_size = gr.Slider(minimum=0, maximum=1024, step=1, value=512, label="Max Crop Size")
-            face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoise Strength")
-            face_area_magnification = gr.Slider(minimum=1.00, maximum=3.00, step=0.01, value=1.5, label="Face Area Nagnification")
+            max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
+            face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
+            face_area_magnification = gr.Slider(minimum=1.00, maximum=3.00, step=0.01, value=1.5, label="Face Area Magnification")
+            
+            with gr.Column():
+                enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
+                face_prompt = gr.Textbox(label="Face Prompt", show_label=False, lines=2,
+                    placeholder="Prompt for Face",
+                    value = "face close up,"
+                )
 
-        return [project_dir, is_facecrop, max_crop_size, face_denoising_strength, face_area_magnification]
+        return [project_dir, is_facecrop, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
         if not self.face_detector:
             dnn_model_path = autocrop.download_and_cache_models(os.path.join(models_path, "opencv"))
             self.face_detector = cv2.FaceDetectorYN.create(dnn_model_path, "", (0, 0))
+        
+        # image without alpha
+        img_array = img_array[:,:,:3]
         
         self.face_detector.setInputSize((img_array.shape[1], img_array.shape[0]))
         return self.face_detector.detect(img_array)
@@ -81,7 +100,7 @@ class Script(scripts.Script):
         
         return self.face_merge_mask_image
 
-    def face_crop_img2img(self, p, max_crop_size, face_denoising_strength, face_area_magnification):
+    def face_crop_img2img(self, p, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
 
         def img_crop( img, face_coords,face_area_magnification,max_crop_size):
             img_array = np.array(img)
@@ -125,7 +144,7 @@ class Script(scripts.Script):
                 else:
                     re_w = int(x_ceiling( (512 / face_img.shape[0]) * face_img.shape[1] , 64))
                     re_h = 512
-                face_img = cv2.resize(face_img, (re_w, re_h), interpolation=cv2.INTER_CUBIC)
+                face_img = resize_img(face_img, re_w, re_h)
                 resized.append( Image.fromarray(face_img))
 
             return resized, new_coords
@@ -141,8 +160,8 @@ class Script(scripts.Script):
             h = int(face_coord[3] * y_rate)
 
             face_array = np.array(face_img)
-            face_array = cv2.resize(face_array, (w, h), interpolation=cv2.INTER_CUBIC)
-            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_CUBIC)
+            face_array = resize_img(face_array, w, h)
+            mask = resize_img(mask, w, h)
 
             bg = img_array[y: y+h, x: x+w]
             img_array[y: y+h, x: x+w] = mask * face_array + (1-mask)*bg
@@ -192,6 +211,11 @@ class Script(scripts.Script):
             face_p.width = face.width
             face_p.height = face.height
             face_p.denoising_strength = face_denoising_strength
+            
+            if enable_face_prompt:
+                face_p.prompt = face_prompt
+            else:
+                face_p.prompt = "close-up face ," + face_p.prompt
 
             if p.image_mask is not None:
                 x,y,w,h = coord
@@ -220,7 +244,7 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, is_facecrop, max_crop_size, face_denoising_strength, face_area_magnification):
+    def run(self, p, project_dir, is_facecrop, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
 
         if not os.path.isdir(project_dir):
             print("project_dir not found")
@@ -251,7 +275,7 @@ class Script(scripts.Script):
             _p.image_mask = mask
 
             if is_facecrop:
-                proc = self.face_crop_img2img(_p, max_crop_size, face_denoising_strength, face_area_magnification)
+                proc = self.face_crop_img2img(_p, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt)
             else:
                 proc = process_images(_p)
 

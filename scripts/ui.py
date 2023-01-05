@@ -21,9 +21,10 @@ def on_ui_tabs():
                                 key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Minimum keyframe gap', value=10)
                                 key_max_gap = gr.Slider(minimum=0, maximum=1000, step=1, label='Maximum keyframe gap', value=300)
                                 key_th = gr.Slider(minimum=5.0, maximum=100.0, step=0.1, label='Threshold of delta frame edge', value=27.0)
+                                key_add_last_frame = gr.Checkbox(label="Add last frame to keyframes", value=True)
 
                             with gr.Accordion(label="stage 7"):
-                                blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=0.5)
+                                blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
 
                             with gr.Accordion(label="etc"):
                                 no_mask_mode = gr.Checkbox(label="No Mask Mode", value=False)
@@ -36,7 +37,8 @@ def on_ui_tabs():
                             with gr.Column(scale=2):
                                 stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 4","stage 5","stage 6","stage 7"], value="stage 1", type="index")
                                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                                                The process of creating a video can be divided into the following stages.<br><br>\
+                                                The process of creating a video can be divided into the following stages.<br>\
+                                                (Stage 3, 4, and 6 only show a guide and do nothing actual processing.)<br><br>\
                                                 <b>stage 1</b> <br>\
                                                     Extract frames from the original video. <br>\
                                                     Generate a mask image. <br><br>\
@@ -77,6 +79,7 @@ def on_ui_tabs():
                     key_min_gap,
                     key_max_gap,
                     key_th,
+                    key_add_last_frame,
 
                     blend_rate,
 

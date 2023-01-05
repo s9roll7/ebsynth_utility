@@ -58,7 +58,7 @@ def detect_edges(img_path):
     hue, sat, lum = cv2.split(cv2.cvtColor( cv2.imread(img_path) , cv2.COLOR_BGR2HSV))
     return _detect_edges(lum)
 
-def analyze_key_frames(png_dir, th, min_gap, max_gap):
+def analyze_key_frames(png_dir, th, min_gap, max_gap, add_last_frame):
     keys = []
     
     frames = sorted(glob.glob( os.path.join(png_dir, "[0-9]*.png") ))
@@ -86,6 +86,12 @@ def analyze_key_frames(png_dir, th, min_gap, max_gap):
             key_edges = edges
             gap = 0
     
+    if add_last_frame:
+        basename_without_ext = os.path.splitext(os.path.basename(frames[-1]))[0]
+        last_frame = int(basename_without_ext)
+        if not last_frame in keys:
+            keys.append( last_frame )
+
     return keys
 
 def remove_pngs_in_dir(path):
@@ -96,7 +102,7 @@ def remove_pngs_in_dir(path):
     for png in pngs:
         os.remove(png)
 
-def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th):
+def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th, key_add_last_frame):
     dbg.print("stage2")
     dbg.print("")
 
@@ -130,13 +136,19 @@ def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th):
     dbg.print("key_max_gap: {}".format(key_max_gap))
     dbg.print("key_th: {}".format(key_th))
 
-    keys = analyze_key_frames(frame_path, key_th, key_min_gap, key_max_gap )
+    keys = analyze_key_frames(frame_path, key_th, key_min_gap, key_max_gap, key_add_last_frame)
 
     dbg.print("keys : " + str(keys))
     
     for k in keys:
         filename = str(k).zfill(5) + ".png"
         shutil.copy( os.path.join( frame_path , filename) , os.path.join(org_key_path, filename) )
+
+
+    dbg.print("")
+    dbg.print("Keyframes are output to [" + org_key_path + "]")
+    dbg.print("If you do not like the selection, you can modify it manually.")
+    dbg.print("(Delete keyframe, or Add keyframe from ["+frame_path+"])")
 
     dbg.print("")
     dbg.print("completed.")

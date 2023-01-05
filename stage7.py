@@ -24,6 +24,7 @@ def create_movie_from_frames( dir, start, end, number_of_digits, fps, output_pat
                         " -vcodec libx264 -pix_fmt yuv420p " +
                         output_path, shell=True)
 
+
 def search_out_dirs(proj_dir, blend_rate):
     ### create out_dirs
     p = re.compile(r'.*\\out\-([0-9]+)\\')
@@ -180,8 +181,9 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate):
     
     start = out_dirs[0]['startframe']
     end = out_dirs[-1]['endframe']
+
     create_movie_from_frames( tmp_dir, start, end, number_of_digits, fps, nosnd_path)
-    
+
     dbg.print("exported : " + nosnd_path)
     
     if os.path.isfile(original_movie_path):

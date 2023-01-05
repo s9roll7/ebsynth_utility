@@ -2,6 +2,7 @@
 
 ## Overview
 #### AUTOMATIC1111 UI extension for creating videos using img2img and ebsynth.
+#### This extension allows you to output edited videos using ebsynth.(AE is not required)
 
 ## Example
 
@@ -18,12 +19,12 @@
 - Use the Extensions tab of the webui to [Install from URL]
 
 ## Usage
-- Go to [Ebsynth Utility] tab
-- Create an empty directory somewhere, and fill in the "Project directory" field
-- Place the video you want to edit from somewhere, and fill in the "Original Movie Path" field
+- Go to [Ebsynth Utility] tab.
+- Create an empty directory somewhere, and fill in the "Project directory" field.
+- Place the video you want to edit from somewhere, and fill in the "Original Movie Path" field.
   Use short videos of a few seconds at first.
-- Select stage 1 and Generate
-- Execute in order from stage 1 to 7
+- Select stage 1 and Generate.
+- Execute in order from stage 1 to 7.
   Progress during the process is not reflected in webui, so please check the console screen.
   If you see "completed." in webui, it is completed.
 
