@@ -5,12 +5,11 @@
 #### This extension allows you to output edited videos using ebsynth.(AE is not required)
 
 ## Example
-
 #### sample 1
-<div><video controls src="imgs/sample1.mp4" muted="false"></video></div>
+<div><video controls src="https://user-images.githubusercontent.com/118420657/209951020-bee819b7-b8ef-48a9-8630-0e7c5c9a5d2f.mp4" muted="false"></video></div>
 
 #### sample 2
-<div><video controls src="imgs/sample2.mp4" muted="false"></video></div>
+<div><video controls src="https://user-images.githubusercontent.com/118420657/209951127-ff61671c-31aa-4e11-82f2-b3d9212c8748.mp4" muted="false"></video></div>
 
 ## Installation
 - Install [ffmpeg](https://ffmpeg.org/) for your operating system
