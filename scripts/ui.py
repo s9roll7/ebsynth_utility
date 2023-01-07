@@ -25,6 +25,7 @@ def on_ui_tabs():
 
                             with gr.Accordion(label="stage 7"):
                                 blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
+                                export_type = gr.Dropdown(choices=["mp4","webm","gif","rawvideo"], value="mp4" ,label="Export type")
 
                             with gr.Accordion(label="etc"):
                                 no_mask_mode = gr.Checkbox(label="No Mask Mode", value=False)
@@ -82,6 +83,7 @@ def on_ui_tabs():
                     key_add_last_frame,
 
                     blend_rate,
+                    export_type,
 
                     no_mask_mode,
 

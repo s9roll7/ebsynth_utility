@@ -25,7 +25,7 @@ class debug_string:
     def to_string(self):
         return self.txt
 
-def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, no_mask_mode:bool):
+def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, export_type:str, no_mask_mode:bool):
     args = locals()
     info = ""
     info = dump_dict(info, args)
@@ -123,7 +123,7 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return process_end( dbg, "" )
     elif stage_index == 6:
-        ebsynth_utility_stage7(dbg, project_args, blend_rate)
+        ebsynth_utility_stage7(dbg, project_args, blend_rate, export_type)
     else:
         pass
 

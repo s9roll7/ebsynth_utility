@@ -12,16 +12,27 @@ def clamp(n, smallest, largest):
     return sorted([smallest, n, largest])[1]
 
 
-def create_movie_from_frames( dir, start, end, number_of_digits, fps, output_path):
+def create_movie_from_frames( dir, start, end, number_of_digits, fps, output_path, export_type):
+    def get_export_str(export_type):
+        if export_type == "mp4":
+            return " -vcodec libx264 -pix_fmt yuv420p "
+        elif export_type == "webm":
+#            return " -vcodec vp9 -crf 10 -b:v 0 "
+            return " -crf 40 -b:v 0 -threads 4 "
+        elif export_type == "gif":
+            return " "
+        elif export_type == "rawvideo":
+            return " -vcodec rawvideo -pix_fmt bgr24 "
+
     vframes = end - start + 1
     path = os.path.join(dir , '%0' + str(number_of_digits) + 'd.png')
     
     # ffmpeg -r 10 -start_number n -i snapshot_%03d.png -vframes 50 example.gif
-    subprocess.call("ffmpeg -r " + str(fps) +
+    subprocess.call("ffmpeg -framerate " + str(fps) + " -r " + str(fps) +
                         " -start_number " + str(start) +
                         " -i " + path + 
                         " -vframes " + str( vframes ) +
-                        " -vcodec libx264 -pix_fmt yuv420p " +
+                        get_export_str(export_type) +
                         output_path, shell=True)
 
 
@@ -75,8 +86,13 @@ def search_out_dirs(proj_dir, blend_rate):
     
     return number_of_digits, out_dirs
 
-
-def ebsynth_utility_stage7(dbg, project_args, blend_rate):
+def get_ext(export_type):
+    if export_type in ("mp4","webm","gif"):
+        return "." + export_type
+    else:
+        return ".avi"
+    
+def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type):
     dbg.print("stage7")
     dbg.print("")
 
@@ -91,6 +107,7 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate):
     blend_rate = clamp(blend_rate, 0.0, 1.0)
 
     dbg.print("blend_rate: {}".format(blend_rate))
+    dbg.print("export_type: {}".format(export_type))
     dbg.print("fps: {}".format(fps))
     
     tmp_dir = os.path.join( project_dir , "crossfade_tmp")
@@ -177,27 +194,28 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate):
     
     ### create movie
     movie_base_name = time.strftime("%Y%m%d-%H%M%S")
-    nosnd_path = os.path.join(project_dir , movie_base_name + '.mp4')
+    nosnd_path = os.path.join(project_dir , movie_base_name + get_ext(export_type))
     
     start = out_dirs[0]['startframe']
     end = out_dirs[-1]['endframe']
 
-    create_movie_from_frames( tmp_dir, start, end, number_of_digits, fps, nosnd_path)
+    create_movie_from_frames( tmp_dir, start, end, number_of_digits, fps, nosnd_path, export_type)
 
     dbg.print("exported : " + nosnd_path)
     
-    if os.path.isfile(original_movie_path):
-        sound_path = os.path.join(tmp_dir , 'sound.mp4')
-        subprocess.call("ffmpeg -i " + original_movie_path + " -vn -acodec copy " + sound_path, shell=True)
-        
-        if os.path.isfile(sound_path):
-            # ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
+    if export_type == "mp4":
+        if os.path.isfile(original_movie_path):
+            sound_path = os.path.join(tmp_dir , 'sound.mp4')
+            subprocess.call("ffmpeg -i " + original_movie_path + " -vn -acodec copy " + sound_path, shell=True)
             
-            with_snd_path = os.path.join(project_dir , movie_base_name + '_with_snd.mp4')
-            
-            subprocess.call("ffmpeg -i " + nosnd_path + " -i " + sound_path + " -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 " + with_snd_path, shell=True)
+            if os.path.isfile(sound_path):
+                # ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
+                
+                with_snd_path = os.path.join(project_dir , movie_base_name + '_with_snd.mp4')
+                
+                subprocess.call("ffmpeg -i " + nosnd_path + " -i " + sound_path + " -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 " + with_snd_path, shell=True)
 
-            dbg.print("exported : " + with_snd_path)
+                dbg.print("exported : " + with_snd_path)
     
     dbg.print("")
     dbg.print("completed.")
