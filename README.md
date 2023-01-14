@@ -51,11 +51,12 @@ Here is the settings I used.
 - Denoising strength : 0.35  
   
 Here is the settings for extension.  
+- Img2Img Repeat Count : 1 ( or 3 with Euler a / lower Denoising strength)  
 - use Face Crop img2img : True  
 - Face Detection Method : YuNet  
 - Max Crop Size : 1024  
 - Face Denoising Strength : 0.35  
-- Face Area Magnification : 1.5  
+- Face Area Magnification : 1.5 (The larger the number, the closer to the model's painting style, but the more likely it is to shift when merged with the body.)  
 - Enable Face Prompt : False  
   
 Trial and error in this process is the most time-consuming part.  

@@ -79,7 +79,9 @@ class Script(scripts.Script):
 
     def ui(self, is_img2img):
         project_dir = gr.Textbox(label='Project directory', lines=1)
-        
+
+        img2img_repeat_count = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Img2Img Repeat Count")
+
         with gr.Group():
             is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
             face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
@@ -89,7 +91,7 @@ class Script(scripts.Script):
                     </p>")
             max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
             face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
-            face_area_magnification = gr.Slider(minimum=1.00, maximum=3.00, step=0.01, value=1.5, label="Face Area Magnification")
+            face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification")
             
             with gr.Column():
                 enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
@@ -98,7 +100,7 @@ class Script(scripts.Script):
                     value = "face close up,"
                 )
 
-        return [project_dir, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+        return [project_dir, img2img_repeat_count, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
@@ -147,23 +149,19 @@ class Script(scripts.Script):
 
         return self.face_merge_mask_image
 
-    def face_crop_img2img(self, p, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def face_crop_img2img(self, p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
 
-        def img_crop( img, face_coords,face_area_magnification,max_crop_size):
+        def img_crop( img, face_coords,face_area_magnification):
             img_array = np.array(img)
             face_imgs =[]
             new_coords = []
 
             for face in face_coords:
-                x = int(face[0])
-                y = int(face[1])
-                w = int(face[2])
-                h = int(face[3])
+                x = int(face[0] * img_array.shape[1])
+                y = int(face[1] * img_array.shape[0])
+                w = int(face[2] * img_array.shape[1])
+                h = int(face[3] * img_array.shape[0])
                 print([x,y,w,h])
-
-                if max(w,h) > max_crop_size:
-                    print("ignore big face")
-                    continue
 
                 cx = x + int(w/2)
                 cy = y + int(h/2)
@@ -216,45 +214,17 @@ class Script(scripts.Script):
             img_array[y: y+h, x: x+w] = mask * face_array + (1-mask)*bg
 
             return Image.fromarray(img_array)
-        
-        def detect_face(img, mask, face_detection_method):
-            img_array = np.array(img)
 
-            if mask is not None:
-                mask_array = np.array(mask)/255
-                if mask_array.ndim == 2:
-                    mask_array = mask_array[:, :, np.newaxis]
-
-                img_array = mask_array * img_array
-                img_array = img_array.astype(np.uint8)
-
-            # image without alpha
-            img_array = img_array[:,:,:3]
-
-            if face_detection_method == "YuNet":
-                return self.detect_face(img_array)
-            elif face_detection_method == "Yolov5_anime":
-                return self.detect_anime_face(img_array)
-            else:
-                return self.detect_face(img_array)
-
-        ### face detect in base img
         base_img = p.init_images[0]
 
-        if base_img is None:
-            print("p.init_images[0] is None")
-            return process_images(p)
-
         base_img_size = (base_img.width, base_img.height)
-
-        face_coords = detect_face(base_img, p.image_mask,face_detection_method)
 
         if face_coords is None or len(face_coords) == 0:
             print("no face detected")
             return process_images(p)
 
         print(face_coords)
-        face_imgs, new_coords = img_crop(base_img, face_coords, face_area_magnification, max_crop_size)
+        face_imgs, new_coords = img_crop(base_img, face_coords, face_area_magnification)
 
         if not face_imgs:
             return process_images(p)
@@ -307,7 +277,46 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, img2img_repeat_count, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+
+        def detect_face(img, mask, face_detection_method, max_crop_size):
+            img_array = np.array(img)
+
+            if mask is not None:
+                mask_array = np.array(mask)/255
+                if mask_array.ndim == 2:
+                    mask_array = mask_array[:, :, np.newaxis]
+
+                img_array = mask_array * img_array
+                img_array = img_array.astype(np.uint8)
+
+            # image without alpha
+            img_array = img_array[:,:,:3]
+
+            if face_detection_method == "YuNet":
+                faces = self.detect_face(img_array)
+            elif face_detection_method == "Yolov5_anime":
+                faces = self.detect_anime_face(img_array)
+            else:
+                faces = self.detect_face(img_array)
+            
+            if faces is None or len(faces) == 0:
+                return []
+            
+            face_coords = []
+            for face in faces:
+                x = int(face[0])
+                y = int(face[1])
+                w = int(face[2])
+                h = int(face[3])
+                if max(w,h) > max_crop_size:
+                    print("ignore big face")
+                    continue
+
+                face_coords.append( [ x/img_array.shape[1],y/img_array.shape[0],w/img_array.shape[1],h/img_array.shape[0]] )
+
+            return face_coords
+            
 
         if not os.path.isdir(project_dir):
             print("project_dir not found")
@@ -336,11 +345,42 @@ class Script(scripts.Script):
             
             _p.init_images=[image]
             _p.image_mask = mask
+            resized_mask = None
 
-            if is_facecrop:
-                proc = self.face_crop_img2img(_p, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt)
-            else:
-                proc = process_images(_p)
+            repeat_count = img2img_repeat_count
+
+            _is_facecrop = is_facecrop
+
+            if _is_facecrop:
+                ### face detect in base img
+                base_img = _p.init_images[0]
+
+                if base_img is None:
+                    print("p.init_images[0] is None")
+                    return process_images(p)
+
+                face_coords = detect_face(base_img, _p.image_mask, face_detection_method, max_crop_size)
+
+                if face_coords is None or len(face_coords) == 0:
+                    print("no face detected")
+                    _is_facecrop = False
+
+            while repeat_count > 0:
+                if _is_facecrop:
+                    proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt)
+                else:
+                    proc = process_images(_p)
+                
+                repeat_count -= 1
+
+                if repeat_count > 0:
+                    _p.init_images=[proc.images[0]]
+
+                    if mask is not None and resized_mask is None:
+                        resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
+                        resized_mask = Image.fromarray(resized_mask)
+                    _p.image_mask = resized_mask
+                    _p.seed += 1
 
             proc.images[0].save( os.path.join( img2img_key_path , img_basename ) )
 
