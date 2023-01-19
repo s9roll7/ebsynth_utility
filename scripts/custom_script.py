@@ -2,6 +2,7 @@ import modules.scripts as scripts
 import gradio as gr
 import os
 import torch
+import random
 
 from modules.processing import process_images
 from modules.paths import models_path
@@ -81,6 +82,7 @@ class Script(scripts.Script):
         project_dir = gr.Textbox(label='Project directory', lines=1)
 
         img2img_repeat_count = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Img2Img Repeat Count")
+        inc_seed = gr.Slider(minimum=0, maximum=9999999, step=1, value=0, label="Add N to seed when repeating")
 
         with gr.Group():
             is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
@@ -100,7 +102,7 @@ class Script(scripts.Script):
                     value = "face close up,"
                 )
 
-        return [project_dir, img2img_repeat_count, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+        return [project_dir, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
@@ -233,6 +235,7 @@ class Script(scripts.Script):
 
         ### img2img base img
         proc = process_images(p)
+        print(proc.seed)
 
 
         ### img2img for each face
@@ -255,6 +258,8 @@ class Script(scripts.Script):
                 face_p.image_mask = Image.fromarray( np.array(p.image_mask)[y: y+h, x: x+w] )
             
             face_proc = process_images(face_p)
+            print(face_proc.seed)
+
             face_img2img_results.append((face_proc.images[0], coord))
         
         ### merge faces
@@ -277,7 +282,7 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, img2img_repeat_count, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
 
         def detect_face(img, mask, face_detection_method, max_crop_size):
             img_array = np.array(img)
@@ -321,6 +326,9 @@ class Script(scripts.Script):
         if not os.path.isdir(project_dir):
             print("project_dir not found")
             return process_images(p)
+
+        if p.seed == -1:
+            p.seed = int(random.randrange(4294967294))
         
         frame_mask_path = os.path.join(project_dir, "video_mask")
         org_key_path = os.path.join(project_dir, "video_key")
@@ -370,6 +378,8 @@ class Script(scripts.Script):
                     proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt)
                 else:
                     proc = process_images(_p)
+                    print(proc.seed)
+
                 
                 repeat_count -= 1
 
@@ -380,7 +390,7 @@ class Script(scripts.Script):
                         resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
                         resized_mask = Image.fromarray(resized_mask)
                     _p.image_mask = resized_mask
-                    _p.seed += 1
+                    _p.seed += inc_seed
 
             proc.images[0].save( os.path.join( img2img_key_path , img_basename ) )
 

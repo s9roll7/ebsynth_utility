@@ -25,7 +25,9 @@
 - Select stage 1 and Generate.
 - Execute in order from stage 1 to 7.
   Progress during the process is not reflected in webui, so please check the console screen.
-  If you see "completed." in webui, it is completed.
+  If you see "completed." in webui, it is completed.  
+(In the current latest webui, it seems to cause an error if you do not drop the image on the main screen of img2img.  
+Please drop the image as it does not affect the result.)
 
 ## Note
 For reference, here's what I did when I edited a 1280x720 30fps 15sec video based on
@@ -61,11 +63,15 @@ Here is the settings for extension.
   
 Trial and error in this process is the most time-consuming part.  
 Monitor the destination folder and if you do not like results, interrupt and change the settings.  
-[Denoising strength] and [Face Denoising Strength] settings when using Face Crop img2img will greatly affect the result.  
+[Prompt][Denoising strength] and [Face Denoising Strength] settings when using Face Crop img2img will greatly affect the result.  
 For more information on Face Crop img2img, check [here](https://github.com/s9roll7/face_crop_img2img)
   
 If you have lots of memory to spare, increasing the width and height values while maintaining the aspect ratio may greatly improve results.  
   
+This extension may help with the adjustment.  
+https://github.com/s9roll7/img2img_for_all_method  
+
+
 #### Stage 4
 Scale it up or down and process it to exactly the same size as the original video.  
 This process should only need to be done once.  
