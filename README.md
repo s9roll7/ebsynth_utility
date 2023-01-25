@@ -13,10 +13,10 @@
 <div><video controls src="https://user-images.githubusercontent.com/118420657/213474343-e49e797d-386e-459f-9be9-2241b2d6266d.mp4" muted="false"></video></div>
 
 #### sample 3 blend background
-- person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style
-- background : cyberpunk, factory, room ,anime screencap, anime style
-It is also possible to blend with your favorite videos.
-
+- person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style  
+- background : cyberpunk, factory, room ,anime screencap, anime style  
+- It is also possible to blend with your favorite videos.  
+<div><video controls src="https://user-images.githubusercontent.com/118420657/214592811-9677634f-93bb-40dd-95b6-1c97c8e7bb63.mp4" muted="false"></video></div>
 
 ## Installation
 - Install [ffmpeg](https://ffmpeg.org/) for your operating system
