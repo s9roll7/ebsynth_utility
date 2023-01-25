@@ -4,7 +4,7 @@ import os
 import torch
 import random
 
-from modules.processing import process_images
+from modules.processing import process_images,Processed
 from modules.paths import models_path
 from modules.textual_inversion import autocrop
 import cv2
@@ -80,9 +80,10 @@ class Script(scripts.Script):
 
     def ui(self, is_img2img):
         project_dir = gr.Textbox(label='Project directory', lines=1)
+        mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
 
-        img2img_repeat_count = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Img2Img Repeat Count")
-        inc_seed = gr.Slider(minimum=0, maximum=9999999, step=1, value=0, label="Add N to seed when repeating")
+        img2img_repeat_count = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Img2Img Repeat Count(Loop Back)")
+        inc_seed = gr.Slider(minimum=0, maximum=9999999, step=1, value=1, label="Add N to seed when repeating ")
 
         with gr.Group():
             is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
@@ -93,7 +94,7 @@ class Script(scripts.Script):
                     </p>")
             max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
             face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
-            face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification")
+            face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification ")
             
             with gr.Column():
                 enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
@@ -102,7 +103,7 @@ class Script(scripts.Script):
                     value = "face close up,"
                 )
 
-        return [project_dir, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+        return [project_dir, mask_mode, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
@@ -282,7 +283,8 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, mask_mode, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+        args = locals()
 
         def detect_face(img, mask, face_detection_method, max_crop_size):
             img_array = np.array(img)
@@ -325,15 +327,39 @@ class Script(scripts.Script):
 
         if not os.path.isdir(project_dir):
             print("project_dir not found")
-            return process_images(p)
-
+            return Processed()
+        
         if p.seed == -1:
             p.seed = int(random.randrange(4294967294))
-        
-        frame_mask_path = os.path.join(project_dir, "video_mask")
-        org_key_path = os.path.join(project_dir, "video_key")
-        img2img_key_path = os.path.join(project_dir, "img2img_key")
 
+        if mask_mode == "Normal":
+            p.inpainting_mask_invert = 0
+        elif mask_mode == "Invert":
+            p.inpainting_mask_invert = 1
+
+        is_invert_mask = False
+        if mask_mode == "Invert":
+            is_invert_mask = True
+
+            inv_path = os.path.join(project_dir, "inv")
+            if not os.path.isdir(inv_path):
+                print("project_dir/inv not found")
+                return Processed()
+            
+            org_key_path = os.path.join(inv_path, "video_key")
+            img2img_key_path = os.path.join(inv_path, "img2img_key")
+        else:
+            org_key_path = os.path.join(project_dir, "video_key")
+            img2img_key_path = os.path.join(project_dir, "img2img_key")
+
+        frame_mask_path = os.path.join(project_dir, "video_mask")
+
+        if not os.path.isdir(org_key_path):
+            print(org_key_path + " not found")
+            print("Generate key frames first." if is_invert_mask == False else \
+                    "Generate key frames first.(with [Ebsynth Utility] Tab -> [configuration] -> [etc]-> [Mask Mode] = Invert setting)")
+            return Processed()
+        
         remove_pngs_in_dir(img2img_key_path)
         os.makedirs(img2img_key_path, exist_ok=True)
 
@@ -343,11 +369,13 @@ class Script(scripts.Script):
             image = Image.open(img)
 
             img_basename = os.path.basename(img)
-            mask_path = os.path.join( frame_mask_path , img_basename )
             
             mask = None
-            if os.path.isfile( mask_path ):
-                mask = Image.open(mask_path)
+
+            if mask_mode != "None":
+                mask_path = os.path.join( frame_mask_path , img_basename )
+                if os.path.isfile( mask_path ):
+                    mask = Image.open(mask_path)
             
             _p = copy.copy(p)
             
@@ -379,7 +407,6 @@ class Script(scripts.Script):
                 else:
                     proc = process_images(_p)
                     print(proc.seed)
-
                 
                 repeat_count -= 1
 
@@ -393,5 +420,10 @@ class Script(scripts.Script):
                     _p.seed += inc_seed
 
             proc.images[0].save( os.path.join( img2img_key_path , img_basename ) )
+
+        with open( os.path.join( project_dir if is_invert_mask == False else inv_path,"param.txt" ), "w") as f:
+            f.write(proc.info)
+        with open( os.path.join( project_dir if is_invert_mask == False else inv_path ,"args.txt" ), "w") as f:
+            f.write(str(args))
 
         return proc

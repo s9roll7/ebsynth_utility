@@ -17,18 +17,32 @@ def on_ui_tabs():
                             project_dir = gr.Textbox(label='Project directory', lines=1)
                             original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
                         with gr.TabItem('configuration', id='ebs_configuration'):
+                            with gr.Accordion(label="stage 1"):
+                                # https://pypi.org/project/transparent-background/
+                                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                                        configuration for \
+                                        <font color=\"blue\"><a href=\"https://pypi.org/project/transparent-background\">[transparent-background]</a></font>\
+                                        </p>")
+                                tb_use_fast_mode = gr.Checkbox(label="Use Fast Mode(It will be faster, but the quality of the mask will be lower.)", value=False)
+                                tb_use_jit = gr.Checkbox(label="Use Jit", value=False)
+
                             with gr.Accordion(label="stage 2"):
                                 key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Minimum keyframe gap', value=10)
                                 key_max_gap = gr.Slider(minimum=0, maximum=1000, step=1, label='Maximum keyframe gap', value=300)
-                                key_th = gr.Slider(minimum=5.0, maximum=100.0, step=0.1, label='Threshold of delta frame edge', value=27.0)
+                                key_th = gr.Slider(minimum=0.0, maximum=100.0, step=0.1, label='Threshold of delta frame edge', value=8.5)
                                 key_add_last_frame = gr.Checkbox(label="Add last frame to keyframes", value=True)
 
                             with gr.Accordion(label="stage 7"):
                                 blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
                                 export_type = gr.Dropdown(choices=["mp4","webm","gif","rawvideo"], value="mp4" ,label="Export type")
 
+                            with gr.Accordion(label="stage 8"):
+                                bg_src = gr.Textbox(label='Background source(mp4 or directory containing images)', lines=1)
+                                bg_type = gr.Dropdown(choices=["Fit video length","Loop"], value="Fit video length" ,label="Background type")
+                                mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size', value=5)
+
                             with gr.Accordion(label="etc"):
-                                no_mask_mode = gr.Checkbox(label="No Mask Mode", value=False)
+                                mask_mode = gr.Dropdown(choices=["Normal","Invert","None"], value="Normal" ,label="Mask Mode")
 
                     with gr.Column(variant='panel'):
                         with gr.Column(scale=1):
@@ -36,7 +50,7 @@ def on_ui_tabs():
                                 debug_info = gr.HTML(elem_id="ebs_info_area", value=".")
 
                             with gr.Column(scale=2):
-                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 4","stage 5","stage 6","stage 7"], value="stage 1", type="index")
+                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 4","stage 5","stage 6","stage 7","stage 8"], value="stage 1", type="index")
                                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                                                 The process of creating a video can be divided into the following stages.<br>\
                                                 (Stage 3, 4, and 6 only show a guide and do nothing actual processing.)<br><br>\
@@ -59,7 +73,13 @@ def on_ui_tabs():
                                                     If multiple .ebs files are generated, run them all.<br><br>\
                                                 <b>stage 7</b> <br>\
                                                     Concatenate each frame while crossfading.<br>\
-                                                    Composite audio files extracted from the original video onto the concatenated video.<br>\
+                                                    Composite audio files extracted from the original video onto the concatenated video.<br><br>\
+                                                <b>stage 8</b> <br>\
+                                                    This is an extra stage.<br>\
+                                                    You can put any image or images or video you like in the background.<br>\
+                                                    You can specify in this field -> [Ebsynth Utility]->[configuration]->[stage 8]->[Background source]<br>\
+                                                    If you have already created a background video in Invert Mask Mode([Ebsynth Utility]->[configuration]->[etc]->[Mask Mode]),<br>\
+                                                    You can specify \"path_to_project_dir/inv/crossfade_tmp\".<br>\
                                                 </p>")
                             
                             with gr.Row():
@@ -77,6 +97,9 @@ def on_ui_tabs():
                     project_dir,
                     original_movie_path,
 
+                    tb_use_fast_mode,
+                    tb_use_jit,
+
                     key_min_gap,
                     key_max_gap,
                     key_th,
@@ -85,7 +108,11 @@ def on_ui_tabs():
                     blend_rate,
                     export_type,
 
-                    no_mask_mode,
+                    bg_src,
+                    bg_type,
+                    mask_blur_size,
+
+                    mask_mode,
 
                 ],
                 outputs=[

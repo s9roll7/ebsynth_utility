@@ -167,7 +167,7 @@ def rename_keys(key_dir):
             dirname = os.path.dirname(img)
             os.rename(img, os.path.join(dirname, f))
 
-def ebsynth_utility_stage5(dbg, project_args):
+def ebsynth_utility_stage5(dbg, project_args, is_invert_mask):
     dbg.print("stage5")
     dbg.print("")
     
@@ -212,13 +212,13 @@ def ebsynth_utility_stage5(dbg, project_args):
         prev_key = key
     
     project = {
-        "proj_dir" : project_dir,
+        "proj_dir" : project_dir if is_invert_mask == False else os.path.join(project_dir, "inv"),
         "file_name" : "/[" + "#" *  number_of_digits + "].png",
         "number_of_digits" : number_of_digits,
         
         "key_dir" : "img2img_upscale_key",
-        "video_dir" : "video_frame",
-        "mask_dir" : "video_mask",
+        "video_dir" : "video_frame" if is_invert_mask == False else "../video_frame",
+        "mask_dir" : "video_mask" if is_invert_mask == False else "inv_video_mask",
         "key_weight" : 1.0,
         "video_weight" : 4.0,
         "mask_weight" : 1.0,
@@ -234,6 +234,8 @@ def ebsynth_utility_stage5(dbg, project_args):
         project["mask_dir"] = ""
 
     proj_base_name = time.strftime("%Y%m%d-%H%M%S")
+    if is_invert_mask:
+        proj_base_name = "inv_" + proj_base_name
 
     tmp=[]
     proj_index = 0

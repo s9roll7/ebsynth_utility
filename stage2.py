@@ -54,18 +54,32 @@ def _detect_edges(lum: np.ndarray) -> np.ndarray:
 
 #---------------------------------
 
-def detect_edges(img_path):
-    hue, sat, lum = cv2.split(cv2.cvtColor( cv2.imread(img_path) , cv2.COLOR_BGR2HSV))
+def detect_edges(img_path, mask_path, is_invert_mask):
+    im = cv2.imread(img_path)
+    if mask_path:
+        mask = cv2.imread(mask_path)[:,:,0]
+        mask = mask[:, :, np.newaxis]
+        im = im * ( (mask == 0) if is_invert_mask else (mask > 0) )
+#        im = im * (mask/255)
+#        im = im.astype(np.uint8)
+#        cv2.imwrite( os.path.join( os.path.dirname(mask_path) , "tmp.png" ) , im)
+
+    hue, sat, lum = cv2.split(cv2.cvtColor( im , cv2.COLOR_BGR2HSV))
     return _detect_edges(lum)
 
-def analyze_key_frames(png_dir, th, min_gap, max_gap, add_last_frame):
+def get_mask_path_of_img(img_path, mask_dir):
+    img_basename = os.path.basename(img_path)
+    mask_path = os.path.join( mask_dir , img_basename )
+    return mask_path if os.path.isfile( mask_path ) else None
+
+def analyze_key_frames(png_dir, mask_dir, th, min_gap, max_gap, add_last_frame, is_invert_mask):
     keys = []
     
     frames = sorted(glob.glob( os.path.join(png_dir, "[0-9]*.png") ))
     
     key_frame = frames[0]
     keys.append( int(os.path.splitext(os.path.basename(key_frame))[0]) )
-    key_edges = detect_edges( key_frame )
+    key_edges = detect_edges( key_frame, get_mask_path_of_img( key_frame, mask_dir ), is_invert_mask )
     gap = 0
     
     for frame in frames:
@@ -73,7 +87,7 @@ def analyze_key_frames(png_dir, th, min_gap, max_gap, add_last_frame):
         if gap < min_gap:
             continue
         
-        edges = detect_edges( frame )
+        edges = detect_edges( frame, get_mask_path_of_img( frame, mask_dir ), is_invert_mask )
         
         delta = mean_pixel_distance( edges, key_edges )
         
@@ -102,11 +116,11 @@ def remove_pngs_in_dir(path):
     for png in pngs:
         os.remove(png)
 
-def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th, key_add_last_frame):
+def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th, key_add_last_frame, is_invert_mask):
     dbg.print("stage2")
     dbg.print("")
 
-    _, original_movie_path, frame_path, _, org_key_path, _, _ = project_args
+    _, original_movie_path, frame_path, frame_mask_path, org_key_path, _, _ = project_args
 
     remove_pngs_in_dir(org_key_path)
     os.makedirs(org_key_path, exist_ok=True)
@@ -136,7 +150,7 @@ def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th, 
     dbg.print("key_max_gap: {}".format(key_max_gap))
     dbg.print("key_th: {}".format(key_th))
 
-    keys = analyze_key_frames(frame_path, key_th, key_min_gap, key_max_gap, key_add_last_frame)
+    keys = analyze_key_frames(frame_path, frame_mask_path, key_th, key_min_gap, key_max_gap, key_add_last_frame, is_invert_mask)
 
     dbg.print("keys : " + str(keys))
     
@@ -147,6 +161,10 @@ def ebsynth_utility_stage2(dbg, project_args, key_min_gap, key_max_gap, key_th, 
 
     dbg.print("")
     dbg.print("Keyframes are output to [" + org_key_path + "]")
+    dbg.print("")
+    dbg.print("[Ebsynth Utility]->[configuration]->[stage 2]->[Threshold of delta frame edge]")
+    dbg.print("The smaller this value, the narrower the keyframe spacing, and if set to 0, the keyframes will be equally spaced at the value of [Minimum keyframe gap].")
+    dbg.print("")
     dbg.print("If you do not like the selection, you can modify it manually.")
     dbg.print("(Delete keyframe, or Add keyframe from ["+frame_path+"])")
 

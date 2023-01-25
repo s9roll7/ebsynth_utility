@@ -91,8 +91,21 @@ def get_ext(export_type):
         return "." + export_type
     else:
         return ".avi"
+
+def trying_to_add_audio(original_movie_path, no_snd_movie_path, output_path, tmp_dir ):
+    if os.path.isfile(original_movie_path):
+        sound_path = os.path.join(tmp_dir , 'sound.mp4')
+        subprocess.call("ffmpeg -i " + original_movie_path + " -vn -acodec copy " + sound_path, shell=True)
+        
+        if os.path.isfile(sound_path):
+            # ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
+
+            subprocess.call("ffmpeg -i " + no_snd_movie_path + " -i " + sound_path + " -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 " + output_path, shell=True)
+            return True
     
-def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type):
+    return False
+
+def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type,is_invert_mask):
     dbg.print("stage7")
     dbg.print("")
 
@@ -110,7 +123,11 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type):
     dbg.print("export_type: {}".format(export_type))
     dbg.print("fps: {}".format(fps))
     
+    if is_invert_mask:
+        project_dir = os.path.join( project_dir , "inv")
+
     tmp_dir = os.path.join( project_dir , "crossfade_tmp")
+
     
     if os.path.isdir(tmp_dir):
         shutil.rmtree(tmp_dir)
@@ -191,9 +208,11 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type):
         filename = str(i).zfill(number_of_digits) + ".png"
         shutil.copy( os.path.join(out_dirs[cur_clip]['path'] , filename) , os.path.join(tmp_dir , filename) )
     
-    
     ### create movie
     movie_base_name = time.strftime("%Y%m%d-%H%M%S")
+    if is_invert_mask:
+        movie_base_name = "inv_" + movie_base_name
+    
     nosnd_path = os.path.join(project_dir , movie_base_name + get_ext(export_type))
     
     start = out_dirs[0]['startframe']
@@ -204,18 +223,11 @@ def ebsynth_utility_stage7(dbg, project_args, blend_rate,export_type):
     dbg.print("exported : " + nosnd_path)
     
     if export_type == "mp4":
-        if os.path.isfile(original_movie_path):
-            sound_path = os.path.join(tmp_dir , 'sound.mp4')
-            subprocess.call("ffmpeg -i " + original_movie_path + " -vn -acodec copy " + sound_path, shell=True)
-            
-            if os.path.isfile(sound_path):
-                # ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
-                
-                with_snd_path = os.path.join(project_dir , movie_base_name + '_with_snd.mp4')
-                
-                subprocess.call("ffmpeg -i " + nosnd_path + " -i " + sound_path + " -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 " + with_snd_path, shell=True)
 
-                dbg.print("exported : " + with_snd_path)
+        with_snd_path = os.path.join(project_dir , movie_base_name + '_with_snd.mp4')
+
+        if trying_to_add_audio(original_movie_path, nosnd_path, with_snd_path, tmp_dir):
+            dbg.print("exported : " + with_snd_path)
     
     dbg.print("")
     dbg.print("completed.")

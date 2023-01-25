@@ -5,11 +5,18 @@
 #### This extension allows you to output edited videos using ebsynth.(AE is not required)
 
 ## Example
+- The following sample is raw output of this extension.
 #### sample 1
 <div><video controls src="https://user-images.githubusercontent.com/118420657/213474231-38cac10e-7e75-43e1-b912-4e7727074d39.mp4" muted="false"></video></div>
 
 #### sample 2
 <div><video controls src="https://user-images.githubusercontent.com/118420657/213474343-e49e797d-386e-459f-9be9-2241b2d6266d.mp4" muted="false"></video></div>
+
+#### sample 3 blend background
+- person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style
+- background : cyberpunk, factory, room ,anime screencap, anime style
+It is also possible to blend with your favorite videos.
+
 
 ## Installation
 - Install [ffmpeg](https://ffmpeg.org/) for your operating system
@@ -37,7 +44,9 @@ All frames of the video and mask images for all frames are generated.
   
 #### Stage 2
 In the implementation of this extension, the keyframe interval is chosen to be shorter where there is a lot of motion and longer where there is little motion.  
+If the animation breaks up, increase the keyframe, if it flickers, decrease the keyframe.  
 First, generate one time with the default settings and go straight ahead without worrying about the result.  
+
   
 #### Stage 3
 Select one of the keyframes, throw it to img2img, and run [Interrogate DeepBooru].  
@@ -45,19 +54,21 @@ Delete unwanted words such as blur from the displayed prompt.
 Fill in the rest of the settings as you would normally do for image generation.  
   
 Here is the settings I used.  
-- Sampling method : DDIM  
+- Sampling method : Euler a  
 - Sampling Steps : 50  
 - Width : 960  
 - Height : 512  
 - CFG Scale : 20  
-- Denoising strength : 0.35  
+- Denoising strength : 0.2  
   
 Here is the settings for extension.  
-- Img2Img Repeat Count : 1 ( or 3 with Euler a / lower Denoising strength)  
+- Mask Mode(Override img2img Mask mode) : Normal
+- Img2Img Repeat Count : 5  
+- Add N to seed when repeating : 1
 - use Face Crop img2img : True  
 - Face Detection Method : YuNet  
 - Max Crop Size : 1024  
-- Face Denoising Strength : 0.35  
+- Face Denoising Strength : 0.25  
 - Face Area Magnification : 1.5 (The larger the number, the closer to the model's painting style, but the more likely it is to shift when merged with the body.)  
 - Enable Face Prompt : False  
   
