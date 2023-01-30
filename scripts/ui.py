@@ -18,6 +18,8 @@ def on_ui_tabs():
                             original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
                         with gr.TabItem('configuration', id='ebs_configuration'):
                             with gr.Accordion(label="stage 1"):
+                                st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
+
                                 # https://pypi.org/project/transparent-background/
                                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                                         configuration for \
@@ -40,6 +42,9 @@ def on_ui_tabs():
                                 bg_src = gr.Textbox(label='Background source(mp4 or directory containing images)', lines=1)
                                 bg_type = gr.Dropdown(choices=["Fit video length","Loop"], value="Fit video length" ,label="Background type")
                                 mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size', value=5)
+                                mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
+                                #is_transparent = gr.Checkbox(label="Is Transparent", value=True, visible = False)
+                                fg_transparency = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Foreground Transparency', value=0.0)
 
                             with gr.Accordion(label="etc"):
                                 mask_mode = gr.Dropdown(choices=["Normal","Invert","None"], value="Normal" ,label="Mask Mode")
@@ -97,6 +102,7 @@ def on_ui_tabs():
                     project_dir,
                     original_movie_path,
 
+                    st1_mask_threshold,
                     tb_use_fast_mode,
                     tb_use_jit,
 
@@ -111,6 +117,8 @@ def on_ui_tabs():
                     bg_src,
                     bg_type,
                     mask_blur_size,
+                    mask_threshold,
+                    fg_transparency,
 
                     mask_mode,
 

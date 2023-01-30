@@ -28,7 +28,7 @@ class debug_string:
     def to_string(self):
         return self.txt
 
-def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, tb_use_fast_mode:bool, tb_use_jit:bool, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_mode:str):
+def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
     args = locals()
     info = ""
     info = dump_dict(info, args)
@@ -73,7 +73,7 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
 
 
     if stage_index == 0:
-        ebsynth_utility_stage1(dbg, project_args, tb_use_fast_mode, tb_use_jit, is_invert_mask)
+        ebsynth_utility_stage1(dbg, project_args, st1_mask_threshold, tb_use_fast_mode, tb_use_jit, is_invert_mask)
         if is_invert_mask:
             inv_mask_path = os.path.join(inv_path, "inv_video_mask")
             ebsynth_utility_stage1_invert(dbg, frame_mask_path, inv_mask_path)
@@ -162,7 +162,7 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
             dbg.print("Please reset [configuration]->[etc]->[Mask Mode] to Normal.")
             dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             return process_end( dbg, "" )
-        ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, export_type)
+        ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, mask_threshold, fg_transparency, export_type)
     else:
         pass
 

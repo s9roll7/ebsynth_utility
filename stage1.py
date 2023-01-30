@@ -12,7 +12,7 @@ def remove_pngs_in_dir(path):
     for png in pngs:
         os.remove(png)
 
-def ebsynth_utility_stage1(dbg, project_args, tb_use_fast_mode, tb_use_jit, is_invert_mask):
+def ebsynth_utility_stage1(dbg, project_args, st1_mask_threshold, tb_use_fast_mode, tb_use_jit, is_invert_mask):
     dbg.print("stage1")
     dbg.print("")
 
@@ -48,7 +48,7 @@ def ebsynth_utility_stage1(dbg, project_args, tb_use_fast_mode, tb_use_jit, is_i
         
         for m in mask_imgs:
             img = cv2.imread(m)
-            img[img < 30] = 0
+            img[img < int( 255 * st1_mask_threshold )] = 0
             cv2.imwrite(m, img)
 
         p = re.compile(r'([0-9]+)_[a-z]*\.png')

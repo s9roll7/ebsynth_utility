@@ -20,7 +20,7 @@ def resize_img(img, w, h):
 
     return cv2.resize(img, (w, h), interpolation=interpolation)
 
-def merge_bg_src(base_frame_dir, bg_dir, frame_mask_path, tmp_dir, bg_type, mask_blur_size):
+def merge_bg_src(base_frame_dir, bg_dir, frame_mask_path, tmp_dir, bg_type, mask_blur_size, mask_threshold, fg_transparency):
 
     base_frames = sorted(glob.glob( os.path.join(base_frame_dir, "[0-9]*.png"), recursive=False) )
 
@@ -47,12 +47,17 @@ def merge_bg_src(base_frame_dir, bg_dir, frame_mask_path, tmp_dir, bg_type, mask
         basename = os.path.basename(base_frame)
         mask_path = os.path.join(frame_mask_path, basename)
         mask = cv2.imread(mask_path)[:,:,0]
+
+        mask[mask < int( 255 * mask_threshold )] = 0
+
         if mask_blur_size > 0:
             mask_blur_size = mask_blur_size//2 * 2 + 1
             mask = cv2.GaussianBlur(mask, (mask_blur_size, mask_blur_size), 0)
         mask = mask[:, :, np.newaxis]
 
-        im = im * (mask/255) + bg * (1- mask/255)
+        fore_rate = (mask/255) * (1 - fg_transparency)
+
+        im = im * fore_rate + bg * (1- fore_rate)
         im = im.astype(np.uint8)
         cv2.imwrite( os.path.join( tmp_dir , basename ) , im)
 
@@ -61,7 +66,7 @@ def extract_frames(movie_path , output_dir, fps):
     # ffmpeg.exe -ss 00:00:00  -y -i %1 -qscale 0 -f image2 -c:v png "%05d.png"
     subprocess.call("ffmpeg.exe -ss 00:00:00  -y -i " + movie_path + " -vf fps=" + str( round(fps, 2)) + " -qscale 0 -f image2 -c:v png " + png_path, shell=True)
 
-def ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, export_type):
+def ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, mask_threshold, fg_transparency, export_type):
     dbg.print("stage8")
     dbg.print("")
 
@@ -113,7 +118,7 @@ def ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, e
         dbg.print(bg_src + " must be mp4 or directory")
         return
 
-    merge_bg_src(base_frame_dir, bg_src, frame_mask_path, tmp_dir, bg_type, mask_blur_size)
+    merge_bg_src(base_frame_dir, bg_src, frame_mask_path, tmp_dir, bg_type, mask_blur_size, mask_threshold, fg_transparency)
     
     ### create movie
     movie_base_name = time.strftime("%Y%m%d-%H%M%S")
