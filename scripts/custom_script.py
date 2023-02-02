@@ -79,31 +79,41 @@ class Script(scripts.Script):
 # The returned values are passed to the run method as parameters.
 
     def ui(self, is_img2img):
-        project_dir = gr.Textbox(label='Project directory', lines=1)
-        mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
-
-        img2img_repeat_count = gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Img2Img Repeat Count(Loop Back)")
-        inc_seed = gr.Slider(minimum=0, maximum=9999999, step=1, value=1, label="Add N to seed when repeating ")
-
-        with gr.Group():
-            is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
-            face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
-            gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                    If loading of the Yolov5_anime model fails, check\
-                    <font color=\"blue\"><a href=\"https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/2235\">[this]</a></font> solution.\
-                    </p>")
-            max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
-            face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
-            face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification ")
-            
+        with gr.Column(variant='panel'):
             with gr.Column():
-                enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
-                face_prompt = gr.Textbox(label="Face Prompt", show_label=False, lines=2,
-                    placeholder="Prompt for Face",
-                    value = "face close up,"
-                )
+                project_dir = gr.Textbox(label='Project directory', lines=1)
+                mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
+                
+            with gr.Column():
+                use_depth = gr.Checkbox(True, label="Use Depth Map If exists in /video_key_depth")
+                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                        See \
+                        <font color=\"blue\"><a href=\"https://github.com/thygate/stable-diffusion-webui-depthmap-script\">[here]</a></font> for depth map.\
+                        </p>")
 
-        return [project_dir, mask_mode, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+            with gr.Column():
+                img2img_repeat_count = gr.Slider(minimum=1, maximum=30, step=1, value=1, label="Img2Img Repeat Count (Loop Back)")
+                inc_seed = gr.Slider(minimum=0, maximum=9999999, step=1, value=1, label="Add N to seed when repeating ")
+
+            with gr.Column():
+                is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
+                face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
+                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                        If loading of the Yolov5_anime model fails, check\
+                        <font color=\"blue\"><a href=\"https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/2235\">[this]</a></font> solution.\
+                        </p>")
+                max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
+                face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
+                face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification ")
+                
+                with gr.Column():
+                    enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
+                    face_prompt = gr.Textbox(label="Face Prompt", show_label=False, lines=2,
+                        placeholder="Prompt for Face",
+                        value = "face close up,"
+                    )
+
+        return [project_dir, mask_mode, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
@@ -274,6 +284,41 @@ class Script(scripts.Script):
 
         return proc
 
+    def get_depth_map(self, mask, depth_path ,img_basename, is_invert_mask):
+        depth_img_path = os.path.join( depth_path , img_basename )
+
+        depth = None
+
+        if os.path.isfile( depth_img_path ):
+            depth = Image.open(depth_img_path)
+        else:
+            # try 00001-0000.png
+            os.path.splitext(img_basename)[0]
+            depth_img_path = os.path.join( depth_path , os.path.splitext(img_basename)[0] + "-0000.png" )
+            if os.path.isfile( depth_img_path ):
+                depth = Image.open(depth_img_path)
+        
+        if depth:
+            if mask:
+                mask_array = np.array(mask)
+                depth_array = np.array(depth)
+
+                if is_invert_mask == False:
+                    depth_array[mask_array[:,:,0] == 0] = 0
+                else:
+                    depth_array[mask_array[:,:,0] != 0] = 0
+
+                depth = Image.fromarray(depth_array)
+
+                tmp_path = os.path.join( depth_path , "tmp" )
+                os.makedirs(tmp_path, exist_ok=True)
+                tmp_path = os.path.join( tmp_path , img_basename )
+                depth_array = depth_array.astype(np.uint16)
+                cv2.imwrite(tmp_path, depth_array)
+
+            mask = depth
+        
+        return depth!=None, mask
 
 
 # This is where the additional processing is implemented. The parameters include
@@ -283,7 +328,7 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, mask_mode, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, mask_mode, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
         args = locals()
 
         def detect_face(img, mask, face_detection_method, max_crop_size):
@@ -348,11 +393,16 @@ class Script(scripts.Script):
             
             org_key_path = os.path.join(inv_path, "video_key")
             img2img_key_path = os.path.join(inv_path, "img2img_key")
+            depth_path = os.path.join(inv_path, "video_key_depth")
         else:
             org_key_path = os.path.join(project_dir, "video_key")
             img2img_key_path = os.path.join(project_dir, "img2img_key")
+            depth_path = os.path.join(project_dir, "video_key_depth")
 
         frame_mask_path = os.path.join(project_dir, "video_mask")
+
+        if not use_depth:
+            depth_path = None
 
         if not os.path.isdir(org_key_path):
             print(org_key_path + " not found")
@@ -400,6 +450,12 @@ class Script(scripts.Script):
                 if face_coords is None or len(face_coords) == 0:
                     print("no face detected")
                     _is_facecrop = False
+            
+            if mask_mode != "None":
+                if use_depth:
+                    depth_found, _p.image_mask = self.get_depth_map( mask, depth_path ,img_basename, is_invert_mask )
+                    if depth_found:
+                        _p.inpainting_mask_invert = 0
 
             while repeat_count > 0:
                 if _is_facecrop:
@@ -413,10 +469,10 @@ class Script(scripts.Script):
                 if repeat_count > 0:
                     _p.init_images=[proc.images[0]]
 
-                    if mask is not None and resized_mask is None:
-                        resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
-                        resized_mask = Image.fromarray(resized_mask)
-                    _p.image_mask = resized_mask
+                    #if mask is not None and resized_mask is None:
+                    #    resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
+                    #    resized_mask = Image.fromarray(resized_mask)
+                    #_p.image_mask = resized_mask
                     _p.seed += inc_seed
 
             proc.images[0].save( os.path.join( img2img_key_path , img_basename ) )
