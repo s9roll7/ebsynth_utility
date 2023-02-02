@@ -469,10 +469,10 @@ class Script(scripts.Script):
                 if repeat_count > 0:
                     _p.init_images=[proc.images[0]]
 
-                    #if mask is not None and resized_mask is None:
-                    #    resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
-                    #    resized_mask = Image.fromarray(resized_mask)
-                    #_p.image_mask = resized_mask
+                    if mask is not None and resized_mask is None:
+                        resized_mask = resize_img(np.array(mask) , proc.images[0].width, proc.images[0].height)
+                        resized_mask = Image.fromarray(resized_mask)
+                    _p.image_mask = resized_mask
                     _p.seed += inc_seed
 
             proc.images[0].save( os.path.join( img2img_key_path , img_basename ) )
