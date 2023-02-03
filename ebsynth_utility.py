@@ -114,11 +114,20 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         sample_image = glob.glob( os.path.join(frame_path , "*.png" ) )[0]
         img_height, img_width, _ = cv2.imread(sample_image).shape
 
+        sample_img2img_key = glob.glob( os.path.join(img2img_key_path , "*.png" ) )[0]
+        img_height_key, img_width_key, _ = cv2.imread(sample_img2img_key).shape
+
         if is_invert_mask:
             project_dir = inv_path
 
         dbg.print("stage 4")
         dbg.print("")
+
+        if img_height == img_height_key and img_width == img_width_key:
+            dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            dbg.print("!! The size of frame and img2img_key matched.")
+            dbg.print("!! You can skip this stage.")
+
         dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         dbg.print("0. Enable the following item")
         dbg.print("Settings ->")

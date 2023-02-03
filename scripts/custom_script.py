@@ -7,6 +7,7 @@ import random
 from modules.processing import process_images,Processed
 from modules.paths import models_path
 from modules.textual_inversion import autocrop
+import modules.images
 import cv2
 import copy
 import numpy as np
@@ -83,6 +84,7 @@ class Script(scripts.Script):
             with gr.Column():
                 project_dir = gr.Textbox(label='Project directory', lines=1)
                 mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
+                inpaint_area = gr.Dropdown(choices=["Whole picture","Only masked","Don't Override"], type = "index", value="Only masked" ,label="Inpaint Area(Override img2img Inpaint area)")
                 
             with gr.Column():
                 use_depth = gr.Checkbox(True, label="Use Depth Map If exists in /video_key_depth")
@@ -113,7 +115,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
 
 
     def detect_face(self, img_array):
@@ -202,6 +204,7 @@ class Script(scripts.Script):
                 else:
                     re_w = int(x_ceiling( (512 / face_img.shape[0]) * face_img.shape[1] , 64))
                     re_h = 512
+                
                 face_img = resize_img(face_img, re_w, re_h)
                 resized.append( Image.fromarray(face_img))
 
@@ -266,7 +269,8 @@ class Script(scripts.Script):
 
             if p.image_mask is not None:
                 x,y,w,h = coord
-                face_p.image_mask = Image.fromarray( np.array(p.image_mask)[y: y+h, x: x+w] )
+                cropped_face_mask = Image.fromarray(np.array(p.image_mask)[y: y+h, x: x+w])
+                face_p.image_mask = modules.images.resize_image(0, cropped_face_mask, face.width, face.height)
             
             face_proc = process_images(face_p)
             print(face_proc.seed)
@@ -328,7 +332,7 @@ class Script(scripts.Script):
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
 
-    def run(self, p, project_dir, mask_mode, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
         args = locals()
 
         def detect_face(img, mask, face_detection_method, max_crop_size):
@@ -381,6 +385,9 @@ class Script(scripts.Script):
             p.inpainting_mask_invert = 0
         elif mask_mode == "Invert":
             p.inpainting_mask_invert = 1
+        
+        if inpaint_area in (0,1):  #"Whole picture","Only masked"
+            p.inpaint_full_res = inpaint_area
 
         is_invert_mask = False
         if mask_mode == "Invert":

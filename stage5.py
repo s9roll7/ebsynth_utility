@@ -171,7 +171,7 @@ def ebsynth_utility_stage5(dbg, project_args, is_invert_mask):
     dbg.print("stage5")
     dbg.print("")
     
-    project_dir, _, frame_path, frame_mask_path, _, _, img2img_upscale_key_path = project_args
+    project_dir, _, frame_path, frame_mask_path, _, img2img_key_path, img2img_upscale_key_path = project_args
 
     if not os.path.isdir(project_dir):
         dbg.print('project_dir : no such dir %s' % project_dir)
@@ -179,12 +179,28 @@ def ebsynth_utility_stage5(dbg, project_args, is_invert_mask):
     if not os.path.isdir(frame_path):
         dbg.print('frame_path : no such dir %s' % frame_path)
         return
+
+    no_upscale = False
+
     if not os.path.isdir(img2img_upscale_key_path):
         dbg.print('img2img_upscale_key_path : no such dir %s' % img2img_upscale_key_path)
-        return
-    
+        if not os.path.isdir(img2img_key_path):
+            return
+        
+        sample_img2img_key = glob.glob( os.path.join(img2img_key_path , "*.png" ) )[0]
+        img_height1, img_width1, _ = cv2.imread(sample_img2img_key).shape
+        sample_frame = glob.glob( os.path.join(frame_path , "*.png" ) )[0]
+        img_height2, img_width2, _ = cv2.imread(sample_frame).shape
 
-    rename_keys(img2img_upscale_key_path)
+        if img_height1 != img_height2 or img_width1 != img_width2:
+            return
+        
+        dbg.print('The size of frame and img2img_key matched. use %s instead' % img2img_key_path)
+        img2img_upscale_key_path = img2img_key_path
+        no_upscale = True
+
+    else:
+        rename_keys(img2img_upscale_key_path)
     
     number_of_digits, keys = search_key_dir( img2img_upscale_key_path )
     
@@ -216,7 +232,7 @@ def ebsynth_utility_stage5(dbg, project_args, is_invert_mask):
         "file_name" : "/[" + "#" *  number_of_digits + "].png",
         "number_of_digits" : number_of_digits,
         
-        "key_dir" : "img2img_upscale_key",
+        "key_dir" : "img2img_upscale_key" if no_upscale == False else "img2img_key",
         "video_dir" : "video_frame" if is_invert_mask == False else "../video_frame",
         "mask_dir" : "video_mask" if is_invert_mask == False else "inv_video_mask",
         "key_weight" : 1.0,
