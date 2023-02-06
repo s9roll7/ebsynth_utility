@@ -138,6 +138,10 @@ class Script(scripts.Script):
 
             self.anime_face_detector = torch.hub.load('ultralytics/yolov5', 'custom', path=anime_model_path)
 
+            # warmup
+            test = np.zeros([512,512,3],dtype=np.uint8)
+            _ = self.anime_face_detector(test)
+
         result = self.anime_face_detector(img_array)
         #models.common.Detections
         faces = []
@@ -368,6 +372,9 @@ class Script(scripts.Script):
                 if max(w,h) > max_crop_size:
                     print("ignore big face")
                     continue
+                if w == 0 or h == 0:
+                    print("ignore w,h = 0 face")
+                    continue
 
                 face_coords.append( [ x/img_array.shape[1],y/img_array.shape[0],w/img_array.shape[1],h/img_array.shape[0]] )
 
@@ -458,9 +465,10 @@ class Script(scripts.Script):
                     print("no face detected")
                     _is_facecrop = False
             
-            if mask_mode != "None":
+            if mask_mode != "None" or use_depth:
                 if use_depth:
                     depth_found, _p.image_mask = self.get_depth_map( mask, depth_path ,img_basename, is_invert_mask )
+                    mask = _p.image_mask
                     if depth_found:
                         _p.inpainting_mask_invert = 0
 
