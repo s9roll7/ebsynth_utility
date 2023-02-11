@@ -21,7 +21,7 @@
 - right : apply auto tagging by deepdanbooru in all keyframes  
 - This function improves the detailed changes in facial expressions, hand expressions, etc.  
   In the sample video, the "closed_eyes" and "hands_on_own_face" tags have been added to better represent eye blinks and hands brought in front of the face.  
-
+<div><video controls src="https://user-images.githubusercontent.com/118420657/218247502-6c8e04fe-859b-4739-8c9d-0bf459d04e3b.mp4" muted="false"></video></div>
 
 #### sample 4 auto tagging (apply lora dynamically)
 - left : apply auto tagging by deepdanbooru in all keyframes  
@@ -30,7 +30,7 @@
   In the sample video, if the "smile" tag is given, the lora and lora trigger keywords are set to be added according to the strength of the "smile" tag.  
   Also, since automatically added tags are sometimes incorrect, unnecessary tags are listed in the blacklist.  
   [Here](sample/) is the actual configuration file used. placed in "Project directory" for use.  
-
+<div><video controls src="https://user-images.githubusercontent.com/118420657/218247633-ab2b1e6b-d81c-4f1d-af8a-6a97df23be0e.mp4" muted="false"></video></div>
 
 
 ## Installation
