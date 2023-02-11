@@ -9,14 +9,29 @@
 #### sample 1
 <div><video controls src="https://user-images.githubusercontent.com/118420657/213474231-38cac10e-7e75-43e1-b912-4e7727074d39.mp4" muted="false"></video></div>
 
-#### sample 2
-<div><video controls src="https://user-images.githubusercontent.com/118420657/213474343-e49e797d-386e-459f-9be9-2241b2d6266d.mp4" muted="false"></video></div>
-
-#### sample 3 blend background
+#### sample 2 blend background
 - person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style  
 - background : cyberpunk, factory, room ,anime screencap, anime style  
 - It is also possible to blend with your favorite videos.  
 <div><video controls src="https://user-images.githubusercontent.com/118420657/214592811-9677634f-93bb-40dd-95b6-1c97c8e7bb63.mp4" muted="false"></video></div>
+
+#### sample 3 auto tagging
+- left : original  
+- center : apply the same prompts in all keyframes  
+- right : apply auto tagging by deepdanbooru in all keyframes  
+- This function improves the detailed changes in facial expressions, hand expressions, etc.  
+  In the sample video, the "closed_eyes" and "hands_on_own_face" tags have been added to better represent eye blinks and hands brought in front of the face.  
+
+
+#### sample 4 auto tagging (apply lora dynamically)
+- left : apply auto tagging by deepdanbooru in all keyframes  
+- right : apply auto tagging by deepdanbooru in all keyframes + apply "anyahehface" lora dynamically  
+- Added the function to dynamically apply TI, hypernet, Lora, and additional prompts according to automatically attached tags.  
+  In the sample video, if the "smile" tag is given, the lora and lora trigger keywords are set to be added according to the strength of the "smile" tag.  
+  Also, since automatically added tags are sometimes incorrect, unnecessary tags are listed in the blacklist.  
+  [Here](sample/) is the actual configuration file used. placed in "Project directory" for use.  
+
+
 
 ## Installation
 - Install [ffmpeg](https://ffmpeg.org/) for your operating system
