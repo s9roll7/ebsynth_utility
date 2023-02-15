@@ -5,9 +5,9 @@
 #### This extension allows you to output edited videos using ebsynth.(AE is not required)
 
 
-#### I have installed [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) and confirmed that all functions are working properly!
-#### [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) is a must for video editing, so I recommend installing it.
-#### "hed model" seems to be the most suitable for video editing.
+##### With [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) installed, I have confirmed that all features of this extension are working properly!  
+##### [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) is a must for video editing, so I recommend installing it.  
+##### "hed model" seems to be the most suitable for video editing.
 
 
 ## Example
