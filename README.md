@@ -4,6 +4,12 @@
 #### AUTOMATIC1111 UI extension for creating videos using img2img and ebsynth.
 #### This extension allows you to output edited videos using ebsynth.(AE is not required)
 
+
+#### I have installed [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) and confirmed that all functions are working properly!
+#### [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) is a must for video editing, so I recommend installing it.
+#### "hed model" seems to be the most suitable for video editing.
+
+
 ## Example
 - The following sample is raw output of this extension.
 #### sample 1
