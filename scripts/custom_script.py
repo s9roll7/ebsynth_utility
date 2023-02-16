@@ -70,6 +70,9 @@ class Script(scripts.Script):
     prompts_dir = ""
     calc_parser = None
     is_invert_mask = False
+    controlnet_weight = 0.5
+    controlnet_weight_for_face = 0.5
+
 
 # The title of the script. This is what will be displayed in the dropdown menu.
     def title(self):
@@ -92,6 +95,14 @@ class Script(scripts.Script):
         with gr.Column(variant='panel'):
             with gr.Column():
                 project_dir = gr.Textbox(label='Project directory', lines=1)
+                controlnet_weight = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, value=0.5, label="ControlNet Weight")
+                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                        Please enable the following settings to use controlnet from this script.<br>\
+                        <font color=\"red\">\
+                        Settings->ControlNet->Allow other script to control this extension\
+                        </font>\
+                        </p>")
+
 
                 with gr.Accordion("Mask option"):
                     mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
@@ -120,6 +131,8 @@ class Script(scripts.Script):
 
             with gr.Accordion("Face Crop option"):
                 is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
+                controlnet_weight_for_face = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, value=0.5, label="ControlNet Weight For Face")
+
                 with gr.Row():
                     face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
                     gr.HTML(value="<p style='margin-bottom: 0.7em'>\
@@ -137,7 +150,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt]
+        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face]
 
 
     def detect_face_from_img(self, img_array):
@@ -238,51 +251,51 @@ class Script(scripts.Script):
 
         return self.face_merge_mask_image
 
-    def face_crop_img2img(self, p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def face_img_crop(self, img, face_coords,face_area_magnification):
+        img_array = np.array(img)
+        face_imgs =[]
+        new_coords = []
 
-        def img_crop( img, face_coords,face_area_magnification):
-            img_array = np.array(img)
-            face_imgs =[]
-            new_coords = []
+        for face in face_coords:
+            x = int(face[0] * img_array.shape[1])
+            y = int(face[1] * img_array.shape[0])
+            w = int(face[2] * img_array.shape[1])
+            h = int(face[3] * img_array.shape[0])
+            print([x,y,w,h])
 
-            for face in face_coords:
-                x = int(face[0] * img_array.shape[1])
-                y = int(face[1] * img_array.shape[0])
-                w = int(face[2] * img_array.shape[1])
-                h = int(face[3] * img_array.shape[0])
-                print([x,y,w,h])
+            cx = x + int(w/2)
+            cy = y + int(h/2)
 
-                cx = x + int(w/2)
-                cy = y + int(h/2)
+            x = cx - int(w*face_area_magnification / 2)
+            x = x if x > 0 else 0
+            w = cx + int(w*face_area_magnification / 2) - x
+            w = w if x+w < img.width else img.width - x
 
-                x = cx - int(w*face_area_magnification / 2)
-                x = x if x > 0 else 0
-                w = cx + int(w*face_area_magnification / 2) - x
-                w = w if x+w < img.width else img.width - x
+            y = cy - int(h*face_area_magnification / 2)
+            y = y if y > 0 else 0
+            h = cy + int(h*face_area_magnification / 2) - y
+            h = h if y+h < img.height else img.height - y
 
-                y = cy - int(h*face_area_magnification / 2)
-                y = y if y > 0 else 0
-                h = cy + int(h*face_area_magnification / 2) - y
-                h = h if y+h < img.height else img.height - y
+            print([x,y,w,h])
 
-                print([x,y,w,h])
-
-                face_imgs.append( img_array[y: y+h, x: x+w] )
-                new_coords.append( [x,y,w,h] )
+            face_imgs.append( img_array[y: y+h, x: x+w] )
+            new_coords.append( [x,y,w,h] )
+        
+        resized = []
+        for face_img in face_imgs:
+            if face_img.shape[1] < face_img.shape[0]:
+                re_w = 512
+                re_h = int(x_ceiling( (512 / face_img.shape[1]) * face_img.shape[0] , 64))
+            else:
+                re_w = int(x_ceiling( (512 / face_img.shape[0]) * face_img.shape[1] , 64))
+                re_h = 512
             
-            resized = []
-            for face_img in face_imgs:
-                if face_img.shape[1] < face_img.shape[0]:
-                    re_w = 512
-                    re_h = int(x_ceiling( (512 / face_img.shape[1]) * face_img.shape[0] , 64))
-                else:
-                    re_w = int(x_ceiling( (512 / face_img.shape[0]) * face_img.shape[1] , 64))
-                    re_h = 512
-                
-                face_img = resize_img(face_img, re_w, re_h)
-                resized.append( Image.fromarray(face_img))
+            face_img = resize_img(face_img, re_w, re_h)
+            resized.append( Image.fromarray(face_img))
 
-            return resized, new_coords
+        return resized, new_coords
+
+    def face_crop_img2img(self, p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, initial_img, initial_face_imgs):
 
         def merge_face(img, face_img, face_coord, base_img_size, mask):
             x_rate = img.width / base_img_size[0]
@@ -314,7 +327,7 @@ class Script(scripts.Script):
             return process_images(p)
 
         print(face_coords)
-        face_imgs, new_coords = img_crop(base_img, face_coords, face_area_magnification)
+        face_imgs, new_coords = self.face_img_crop(base_img, face_coords, face_area_magnification)
 
         if not face_imgs:
             return process_images(p)
@@ -322,14 +335,13 @@ class Script(scripts.Script):
         face_p = copy.copy(p)
 
         ### img2img base img
-        proc = process_images(p)
+        proc = self.process_images(p, initial_img, self.controlnet_weight)
         print(proc.seed)
-
 
         ### img2img for each face
         face_img2img_results = []
 
-        for face, coord in zip(face_imgs, new_coords):
+        for face, coord, initial_face in zip(face_imgs, new_coords, initial_face_imgs):
             # cv2.imwrite("scripts/face.png", np.array(face)[:, :, ::-1])
             face_p.init_images = [face]
             face_p.width = face.width
@@ -346,7 +358,7 @@ class Script(scripts.Script):
                 cropped_face_mask = Image.fromarray(np.array(p.image_mask)[y: y+h, x: x+w])
                 face_p.image_mask = modules.images.resize_image(0, cropped_face_mask, face.width, face.height)
             
-            face_proc = process_images(face_p)
+            face_proc = self.process_images(face_p, initial_face, self.controlnet_weight_for_face)
             print(face_proc.seed)
 
             face_img2img_results.append((face_proc.images[0], coord))
@@ -703,6 +715,11 @@ class Script(scripts.Script):
                     prompts_dict[key] = prev_value
 
         return prompts_dict
+    
+    def process_images(self, p, input_img, controlnet_weight):
+        p.control_net_input_image = input_img
+        p.control_net_weight = controlnet_weight
+        return process_images(p)
 
 
 # This is where the additional processing is implemented. The parameters include
@@ -711,12 +728,15 @@ class Script(scripts.Script):
 # Custom functions can be defined here, and additional libraries can be imported 
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
-    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt):
+    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face):
         args = locals()
 
         if not os.path.isdir(project_dir):
             print("project_dir not found")
             return Processed()
+        
+        self.controlnet_weight = controlnet_weight
+        self.controlnet_weight_for_face = controlnet_weight_for_face
         
         if p.seed == -1:
             p.seed = int(random.randrange(4294967294))
@@ -844,12 +864,16 @@ class Script(scripts.Script):
                     if depth_found:
                         _p.inpainting_mask_invert = 0
 
+            initial_base_img = image
+            if face_coords:
+                initial_face_imgs, _ = self.face_img_crop(image, face_coords, face_area_magnification)
+
             while repeat_count > 0:
 
                 if face_coords:
-                    proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt)
+                    proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, initial_base_img, initial_face_imgs)
                 else:
-                    proc = process_images(_p)
+                    proc = self.process_images(_p, initial_base_img, self.controlnet_weight)
                     print(proc.seed)
                 
                 repeat_count -= 1
