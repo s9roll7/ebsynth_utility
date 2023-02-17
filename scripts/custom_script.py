@@ -95,7 +95,7 @@ class Script(scripts.Script):
         with gr.Column(variant='panel'):
             with gr.Column():
                 project_dir = gr.Textbox(label='Project directory', lines=1)
-                controlnet_weight = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, value=0.5, label="ControlNet Weight")
+                controlnet_weight = gr.Slider(minimum=0.0, maximum=2.0, step=0.01, value=0.5, label="Control Net Weight")
                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                         Please enable the following settings to use controlnet from this script.<br>\
                         <font color=\"red\">\
@@ -131,7 +131,7 @@ class Script(scripts.Script):
 
             with gr.Accordion("Face Crop option"):
                 is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
-                controlnet_weight_for_face = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, value=0.5, label="ControlNet Weight For Face")
+                controlnet_weight_for_face = gr.Slider(minimum=0.0, maximum=2.0, step=0.01, value=0.5, label="Control Net Weight For Face")
 
                 with gr.Row():
                     face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
