@@ -142,6 +142,7 @@ class Script(scripts.Script):
                 max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
                 face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
                 face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification ")
+                disable_facecrop_lpbk_last_time = gr.Checkbox(False, label="Disable at the last loopback time")
                 
                 with gr.Column():
                     enable_face_prompt = gr.Checkbox(False, label="Enable Face Prompt")
@@ -150,7 +151,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face]
+        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time]
 
 
     def detect_face_from_img(self, img_array):
@@ -728,7 +729,7 @@ class Script(scripts.Script):
 # Custom functions can be defined here, and additional libraries can be imported 
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
-    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face):
+    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time):
         args = locals()
 
         if not os.path.isdir(project_dir):
@@ -869,6 +870,11 @@ class Script(scripts.Script):
                 initial_face_imgs, _ = self.face_img_crop(image, face_coords, face_area_magnification)
 
             while repeat_count > 0:
+
+                if disable_facecrop_lpbk_last_time:
+                    if img2img_repeat_count > 1:
+                        if repeat_count == 1:
+                            face_coords = None
 
                 if face_coords:
                     proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, initial_base_img, initial_face_imgs)
