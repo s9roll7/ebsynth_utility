@@ -7,13 +7,18 @@
 
 ##### With [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) installed, I have confirmed that all features of this extension are working properly!  
 ##### [Controlnet](https://github.com/Mikubill/sd-webui-controlnet) is a must for video editing, so I recommend installing it.  
-##### "hed model" seems to be the most suitable for video editing.
+##### Multi ControlNet("canny" + "normal map") would be suitable for video editing.  
 
 
 ## Example
-- The following sample is raw output of this extension.
-#### sample 1
-<div><video controls src="https://user-images.githubusercontent.com/118420657/213474231-38cac10e-7e75-43e1-b912-4e7727074d39.mp4" muted="false"></video></div>
+- The following sample is raw output of this extension.  
+#### sample 1 mask with [clipseg](https://github.com/timojl/clipseg)  
+- left : original  
+- center : masking "cat" exclude "finger"  
+- right : masking "cat head"  
+- Multiple targets can also be specified.(e.g. cat,dog,boy,girl)  
+<div><video controls src="" muted="false"></video></div>
+
 
 #### sample 2 blend background
 - person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style  
@@ -57,7 +62,7 @@
 (In the current latest webui, it seems to cause an error if you do not drop the image on the main screen of img2img.  
 Please drop the image as it does not affect the result.)
 
-## Note
+## Note 1
 For reference, here's what I did when I edited a 1280x720 30fps 15sec video based on
 #### Stage 1
 There is nothing to configure.  
@@ -131,4 +136,8 @@ In my case, the entire process from 1 to 7 took about 30 minutes.
   
 - Crossfade blend rate : 1.0  
 - Export type : mp4  
+
+## Note 2 : How to use clipseg
+![clipseg](imgs/clipseg.png "How to use clipseg")
+
 
