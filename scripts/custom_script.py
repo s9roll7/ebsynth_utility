@@ -95,23 +95,26 @@ class Script(scripts.Script):
         with gr.Column(variant='panel'):
             with gr.Column():
                 project_dir = gr.Textbox(label='Project directory', lines=1)
+
+            with gr.Accordion("Mask option"):
+                mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
+                inpaint_area = gr.Dropdown(choices=["Whole picture","Only masked","Don't Override"], type = "index", value="Only masked" ,label="Inpaint Area(Override img2img Inpaint area)")
+                use_depth = gr.Checkbox(True, label="Use Depth Map If exists in /video_key_depth")
+                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                        See \
+                        <font color=\"blue\"><a href=\"https://github.com/thygate/stable-diffusion-webui-depthmap-script\">[here]</a></font> for depth map.\
+                        </p>")
+
+            with gr.Accordion("ControlNet option"):
                 controlnet_weight = gr.Slider(minimum=0.0, maximum=2.0, step=0.01, value=0.5, label="Control Net Weight")
+                controlnet_weight_for_face = gr.Slider(minimum=0.0, maximum=2.0, step=0.01, value=0.5, label="Control Net Weight For Face")
+                use_preprocess_img = gr.Checkbox(True, label="Use Preprocess image If exists in /controlnet_preprocess")
                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                         Please enable the following settings to use controlnet from this script.<br>\
                         <font color=\"red\">\
                         Settings->ControlNet->Allow other script to control this extension\
                         </font>\
                         </p>")
-
-
-                with gr.Accordion("Mask option"):
-                    mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
-                    inpaint_area = gr.Dropdown(choices=["Whole picture","Only masked","Don't Override"], type = "index", value="Only masked" ,label="Inpaint Area(Override img2img Inpaint area)")
-                    use_depth = gr.Checkbox(True, label="Use Depth Map If exists in /video_key_depth")
-                    gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                            See \
-                            <font color=\"blue\"><a href=\"https://github.com/thygate/stable-diffusion-webui-depthmap-script\">[here]</a></font> for depth map.\
-                            </p>")
             
             with gr.Accordion("Loopback option"):
                 img2img_repeat_count = gr.Slider(minimum=1, maximum=30, step=1, value=1, label="Img2Img Repeat Count (Loop Back)")
@@ -131,7 +134,6 @@ class Script(scripts.Script):
 
             with gr.Accordion("Face Crop option"):
                 is_facecrop = gr.Checkbox(False, label="use Face Crop img2img")
-                controlnet_weight_for_face = gr.Slider(minimum=0.0, maximum=2.0, step=0.01, value=0.5, label="Control Net Weight For Face")
 
                 with gr.Row():
                     face_detection_method = gr.Dropdown(choices=["YuNet","Yolov5_anime"], value="YuNet" ,label="Face Detection Method")
@@ -151,7 +153,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time]
+        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time,use_preprocess_img]
 
 
     def detect_face_from_img(self, img_array):
@@ -296,7 +298,7 @@ class Script(scripts.Script):
 
         return resized, new_coords
 
-    def face_crop_img2img(self, p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, initial_img, initial_face_imgs):
+    def face_crop_img2img(self, p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_input_img, controlnet_input_face_imgs, preprocess_img_exist):
 
         def merge_face(img, face_img, face_coord, base_img_size, mask):
             x_rate = img.width / base_img_size[0]
@@ -336,13 +338,13 @@ class Script(scripts.Script):
         face_p = copy.copy(p)
 
         ### img2img base img
-        proc = self.process_images(p, initial_img, self.controlnet_weight)
+        proc = self.process_images(p, controlnet_input_img, self.controlnet_weight, preprocess_img_exist)
         print(proc.seed)
 
         ### img2img for each face
         face_img2img_results = []
 
-        for face, coord, initial_face in zip(face_imgs, new_coords, initial_face_imgs):
+        for face, coord, controlnet_input_face in zip(face_imgs, new_coords, controlnet_input_face_imgs):
             # cv2.imwrite("scripts/face.png", np.array(face)[:, :, ::-1])
             face_p.init_images = [face]
             face_p.width = face.width
@@ -359,7 +361,7 @@ class Script(scripts.Script):
                 cropped_face_mask = Image.fromarray(np.array(p.image_mask)[y: y+h, x: x+w])
                 face_p.image_mask = modules.images.resize_image(0, cropped_face_mask, face.width, face.height)
             
-            face_proc = self.process_images(face_p, initial_face, self.controlnet_weight_for_face)
+            face_proc = self.process_images(face_p, controlnet_input_face, self.controlnet_weight_for_face, preprocess_img_exist)
             print(face_proc.seed)
 
             face_img2img_results.append((face_proc.images[0], coord))
@@ -542,7 +544,7 @@ class Script(scripts.Script):
 
 
     def remove_reserved_token(self, token_list):
-        reserved_list = ["pink_background","simple_background","pink"]
+        reserved_list = ["pink_background","simple_background","pink","pink_theme"]
 
         result_list = []
 
@@ -717,9 +719,11 @@ class Script(scripts.Script):
 
         return prompts_dict
     
-    def process_images(self, p, input_img, controlnet_weight):
+    def process_images(self, p, input_img, controlnet_weight, input_img_is_preprocessed):
         p.control_net_input_image = input_img
         p.control_net_weight = controlnet_weight
+        if input_img_is_preprocessed:
+            p.control_net_module = "none"
         return process_images(p)
 
 
@@ -729,7 +733,7 @@ class Script(scripts.Script):
 # Custom functions can be defined here, and additional libraries can be imported 
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
-    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time):
+    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time, use_preprocess_img):
         args = locals()
 
         if not os.path.isdir(project_dir):
@@ -763,12 +767,17 @@ class Script(scripts.Script):
             img2img_key_path = os.path.join(inv_path, "img2img_key")
             depth_path = os.path.join(inv_path, "video_key_depth")
 
+            preprocess_path = os.path.join(inv_path, "controlnet_preprocess")
+
             self.prompts_dir = inv_path
             self.is_invert_mask = True
         else:
             org_key_path = os.path.join(project_dir, "video_key")
             img2img_key_path = os.path.join(project_dir, "img2img_key")
             depth_path = os.path.join(project_dir, "video_key_depth")
+
+            preprocess_path = os.path.join(project_dir, "controlnet_preprocess")
+
             self.prompts_dir = project_dir
             self.is_invert_mask = False
 
@@ -796,8 +805,18 @@ class Script(scripts.Script):
                     return mask_path
             return ""
         
+        def get_pair_of_img(img, target_dir):
+            img_basename = os.path.basename(img)
+            
+            pair_path = os.path.join( target_dir , img_basename )
+            if os.path.isfile( pair_path ):
+                return pair_path
+            print("!!! pair of "+ img + " not in " + target_dir)
+            return ""
+        
         imgs = glob.glob( os.path.join(org_key_path ,"*.png") )
         masks = [ get_mask_of_img(i) for i in imgs ]
+        controlnet_input_imgs = [ get_pair_of_img(i, org_key_path) for i in imgs ]
 
         ######################
         # face crop
@@ -842,7 +861,7 @@ class Script(scripts.Script):
 
         ######################
         # img2img
-        for img, mask, face_coords, prompts in zip(imgs, masks, face_coords_dict.values(), prompts_dict.values()):
+        for img, mask, controlnet_input_img, face_coords, prompts in zip(imgs, masks, controlnet_input_imgs, face_coords_dict.values(), prompts_dict.values()):
 
             image = Image.open(img)
             mask_image = Image.open(mask) if mask else None
@@ -864,10 +883,18 @@ class Script(scripts.Script):
                     mask_image = _p.image_mask
                     if depth_found:
                         _p.inpainting_mask_invert = 0
+            
+            preprocess_img_exist = False
+            controlnet_input_base_img = Image.open(controlnet_input_img) if controlnet_input_img else None
 
-            initial_base_img = image
+            if use_preprocess_img:
+                preprocess_img = os.path.join(preprocess_path, img_basename)
+                if os.path.isfile( preprocess_img ):
+                    controlnet_input_base_img = Image.open(preprocess_img)
+                    preprocess_img_exist = True
+
             if face_coords:
-                initial_face_imgs, _ = self.face_img_crop(image, face_coords, face_area_magnification)
+                controlnet_input_face_imgs, _ = self.face_img_crop(controlnet_input_base_img, face_coords, face_area_magnification)
 
             while repeat_count > 0:
 
@@ -877,9 +904,9 @@ class Script(scripts.Script):
                             face_coords = None
 
                 if face_coords:
-                    proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, initial_base_img, initial_face_imgs)
+                    proc = self.face_crop_img2img(_p, face_coords, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_input_base_img, controlnet_input_face_imgs, preprocess_img_exist)
                 else:
-                    proc = self.process_images(_p, initial_base_img, self.controlnet_weight)
+                    proc = self.process_images(_p, controlnet_input_base_img, self.controlnet_weight, preprocess_img_exist)
                     print(proc.seed)
                 
                 repeat_count -= 1

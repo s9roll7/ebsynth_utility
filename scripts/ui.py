@@ -18,15 +18,24 @@ def on_ui_tabs():
                             original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
                         with gr.TabItem('configuration', id='ebs_configuration'):
                             with gr.Accordion(label="stage 1"):
-                                st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
+                                st1_masking_method_index = gr.Radio(label='Masking Method', choices=["transparent-background","clipseg"], value="transparent-background", type="index")
 
-                                # https://pypi.org/project/transparent-background/
-                                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                                        configuration for \
-                                        <font color=\"blue\"><a href=\"https://pypi.org/project/transparent-background\">[transparent-background]</a></font>\
-                                        </p>")
-                                tb_use_fast_mode = gr.Checkbox(label="Use Fast Mode(It will be faster, but the quality of the mask will be lower.)", value=False)
-                                tb_use_jit = gr.Checkbox(label="Use Jit", value=False)
+                                with gr.Accordion(label="transparent-background options"):
+                                    st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
+
+                                    # https://pypi.org/project/transparent-background/
+                                    gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                                            configuration for \
+                                            <font color=\"blue\"><a href=\"https://pypi.org/project/transparent-background\">[transparent-background]</a></font>\
+                                            </p>")
+                                    tb_use_fast_mode = gr.Checkbox(label="Use Fast Mode(It will be faster, but the quality of the mask will be lower.)", value=False)
+                                    tb_use_jit = gr.Checkbox(label="Use Jit", value=False)
+
+                                with gr.Accordion(label="clipseg options"):
+                                    clipseg_mask_prompt = gr.Textbox(label='Mask Target (e.g., girl, cats)', lines=1)
+                                    clipseg_exclude_prompt = gr.Textbox(label='Exclude Target (e.g., finger, book)', lines=1)
+                                    clipseg_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.4)
+                                    clipseg_mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size', value=30)
 
                             with gr.Accordion(label="stage 2"):
                                 key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Minimum keyframe gap', value=10)
@@ -102,9 +111,14 @@ def on_ui_tabs():
                     project_dir,
                     original_movie_path,
 
+                    st1_masking_method_index,
                     st1_mask_threshold,
                     tb_use_fast_mode,
                     tb_use_jit,
+                    clipseg_mask_prompt,
+                    clipseg_exclude_prompt,
+                    clipseg_mask_threshold,
+                    clipseg_mask_blur_size,
 
                     key_min_gap,
                     key_max_gap,
