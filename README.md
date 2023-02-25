@@ -17,8 +17,7 @@
 - center : masking "cat" exclude "finger"  
 - right : masking "cat head"  
 - Multiple targets can also be specified.(e.g. cat,dog,boy,girl)  
-<div><video controls src="" muted="false"></video></div>
-
+<div><video controls src="https://user-images.githubusercontent.com/118420657/221363476-1403e571-98a1-49cc-847c-768ceeeb8e16.mp4" muted="false"></video></div>
 
 #### sample 2 blend background
 - person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style  
