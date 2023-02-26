@@ -5,6 +5,7 @@ import torch
 import random
 import time
 import pprint
+import shutil
 
 from modules.processing import process_images,Processed
 from modules.paths import models_path
@@ -769,6 +770,8 @@ class Script(scripts.Script):
 
             preprocess_path = os.path.join(inv_path, "controlnet_preprocess")
 
+            controlnet_input_path = os.path.join(inv_path, "controlnet_input")
+
             self.prompts_dir = inv_path
             self.is_invert_mask = True
         else:
@@ -777,6 +780,8 @@ class Script(scripts.Script):
             depth_path = os.path.join(project_dir, "video_key_depth")
 
             preprocess_path = os.path.join(project_dir, "controlnet_preprocess")
+
+            controlnet_input_path = os.path.join(project_dir, "controlnet_input")
 
             self.prompts_dir = project_dir
             self.is_invert_mask = False
@@ -791,7 +796,18 @@ class Script(scripts.Script):
             print("Generate key frames first." if is_invert_mask == False else \
                     "Generate key frames first.(with [Ebsynth Utility] Tab -> [configuration] -> [etc]-> [Mask Mode] = Invert setting)")
             return Processed()
-        
+
+        if not os.path.isdir(controlnet_input_path):
+            print(controlnet_input_path + " not found")
+            print("copy {0} -> {1}".format(org_key_path,controlnet_input_path))
+
+            os.makedirs(controlnet_input_path, exist_ok=True)
+
+            imgs = glob.glob( os.path.join(org_key_path ,"*.png") )
+            for img in imgs:
+                img_basename = os.path.basename(img)
+                shutil.copy( img , os.path.join(controlnet_input_path, img_basename) )
+
         remove_pngs_in_dir(img2img_key_path)
         os.makedirs(img2img_key_path, exist_ok=True)
 
@@ -813,10 +829,16 @@ class Script(scripts.Script):
                 return pair_path
             print("!!! pair of "+ img + " not in " + target_dir)
             return ""
+
+        def get_controlnet_input_img(img):
+            pair_img = get_pair_of_img(img, controlnet_input_path)
+            if not pair_img:
+                pair_img = get_pair_of_img(img, org_key_path)
+            return pair_img
         
         imgs = glob.glob( os.path.join(org_key_path ,"*.png") )
         masks = [ get_mask_of_img(i) for i in imgs ]
-        controlnet_input_imgs = [ get_pair_of_img(i, org_key_path) for i in imgs ]
+        controlnet_input_imgs = [ get_controlnet_input_img(i) for i in imgs ]
 
         ######################
         # face crop
