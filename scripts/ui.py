@@ -18,7 +18,15 @@ def on_ui_tabs():
                             original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
                         with gr.TabItem('configuration', id='ebs_configuration'):
                             with gr.Accordion(label="stage 1"):
-                                st1_masking_method_index = gr.Radio(label='Masking Method', choices=["transparent-background","clipseg"], value="transparent-background", type="index")
+
+                                with gr.Row():
+                                    frame_width = gr.Number(value=-1, label="Frame Width", precision=0, interactive=True)
+                                    frame_height = gr.Number(value=-1, label="Frame Height", precision=0, interactive=True)
+                                gr.HTML(value="<p style='margin-bottom: 1.2em'>\
+                                        -1 means that it is calculated automatically. If both are -1, the size will be the same as the source size. \
+                                        </p>")
+
+                                st1_masking_method_index = gr.Radio(label='Masking Method', choices=["transparent-background","clipseg","transparent-background AND clipseg"], value="transparent-background", type="index")
 
                                 with gr.Accordion(label="transparent-background options"):
                                     st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
@@ -35,7 +43,8 @@ def on_ui_tabs():
                                     clipseg_mask_prompt = gr.Textbox(label='Mask Target (e.g., girl, cats)', lines=1)
                                     clipseg_exclude_prompt = gr.Textbox(label='Exclude Target (e.g., finger, book)', lines=1)
                                     clipseg_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.4)
-                                    clipseg_mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size', value=30)
+                                    clipseg_mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(MedianBlur)', value=11)
+                                    clipseg_mask_blur_size2 = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(GaussianBlur)', value=11)
 
                             with gr.Accordion(label="stage 2"):
                                 key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Minimum keyframe gap', value=10)
@@ -111,6 +120,8 @@ def on_ui_tabs():
                     project_dir,
                     original_movie_path,
 
+                    frame_width,
+                    frame_height,
                     st1_masking_method_index,
                     st1_mask_threshold,
                     tb_use_fast_mode,
@@ -119,6 +130,7 @@ def on_ui_tabs():
                     clipseg_exclude_prompt,
                     clipseg_mask_threshold,
                     clipseg_mask_blur_size,
+                    clipseg_mask_blur_size2,
 
                     key_min_gap,
                     key_max_gap,
