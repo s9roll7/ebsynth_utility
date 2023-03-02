@@ -197,6 +197,10 @@ class Script(scripts.Script):
     def detect_face(self, img, mask, face_detection_method, max_crop_size):
         img_array = np.array(img)
 
+        # image without alpha
+        if img_array.shape[2] == 4:
+            img_array = img_array[:,:,:3]
+
         if mask is not None:
             if self.is_invert_mask:
                 mask = ImageOps.invert(mask)
@@ -204,11 +208,11 @@ class Script(scripts.Script):
             if mask_array.ndim == 2:
                 mask_array = mask_array[:, :, np.newaxis]
 
+            if mask_array.shape[2] == 4:
+                mask_array = mask_array[:,:,:3]
+            
             img_array = mask_array * img_array
             img_array = img_array.astype(np.uint8)
-
-        # image without alpha
-        img_array = img_array[:,:,:3]
 
         if face_detection_method == "YuNet":
             faces = self.detect_face_from_img(img_array)
