@@ -6,3 +6,35 @@
     padding: 10px;
     background-color: white;
 }
+
+#ebs_configuration_tab1>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+#ebs_configuration_tab2>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+#ebs_configuration_tab3_5>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+#ebs_configuration_tab7>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+#ebs_configuration_tab8>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+#ebs_configuration_tab_etc>div{
+    margin: 5px;
+    padding: 5px;
+}
+
+
