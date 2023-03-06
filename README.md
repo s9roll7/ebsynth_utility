@@ -13,11 +13,12 @@
 ## Example
 - The following sample is raw output of this extension.  
 #### sample 1 mask with [clipseg](https://github.com/timojl/clipseg)  
-- left : original  
-- center : masking "cat" exclude "finger"  
-- right : masking "cat head"  
+- first from left : original  
+- second from left : masking "cat" exclude "finger"  
+- third from left : masking "cat head"  
+- right : color corrected with [color-matcher](https://github.com/hahnec/color-matcher) (see stage 3.5)  
 - Multiple targets can also be specified.(e.g. cat,dog,boy,girl)  
-<div><video controls src="https://user-images.githubusercontent.com/118420657/221363476-1403e571-98a1-49cc-847c-768ceeeb8e16.mp4" muted="false"></video></div>
+<div><video controls src="https://user-images.githubusercontent.com/118420657/223008549-167beaee-1453-43fa-85ce-fe3982466c26.mp4" muted="false"></video></div>
 
 #### sample 2 blend background
 - person : masterpiece, best quality, masterpiece, 1girl, masterpiece, best quality,anime screencap, anime style  
