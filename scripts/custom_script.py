@@ -844,6 +844,18 @@ class Script(scripts.Script):
         masks = [ get_mask_of_img(i) for i in imgs ]
         controlnet_input_imgs = [ get_controlnet_input_img(i) for i in imgs ]
 
+        for mask in masks:
+            m = cv2.imread(mask) if mask else None
+            if m is not None:
+                if m.max() == 0:
+                    print("{0} blank mask found".format(mask))
+                    if m.ndim == 2:
+                        m[0,0] = 255
+                    else:
+                        m = m[:,:,:3]
+                        m[0,0,0:3] = 255
+                    cv2.imwrite(mask, m)
+
         ######################
         # face crop
         face_coords_dict={}
