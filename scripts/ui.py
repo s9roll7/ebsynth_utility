@@ -16,6 +16,15 @@ def on_ui_tabs():
                         with gr.TabItem('project setting', elem_id='ebs_project_setting'):
                             project_dir = gr.Textbox(label='Project directory', lines=1)
                             original_movie_path = gr.Textbox(label='Original Movie Path', lines=1)
+
+                            org_video = gr.Video(interactive=True, mirror_webcam=False)
+                            def fn_upload_org_video(video):
+                                return video
+                            org_video.upload(fn_upload_org_video, org_video, original_movie_path)
+                            gr.HTML(value="<p style='margin-bottom: 1.2em'>\
+                                    If you have trouble entering the video path manually, you can also use drag and drop.For large videos, please enter the path manually. \
+                                    </p>")
+
                         with gr.TabItem('configuration', elem_id='ebs_configuration'):
                             with gr.Tabs(elem_id="ebs_configuration_tab"):
                                 with gr.TabItem(label="stage 1",elem_id='ebs_configuration_tab1'):

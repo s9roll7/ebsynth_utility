@@ -42,11 +42,11 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
 
 
     if not os.path.isdir(project_dir):
-        dbg.print("project_dir not found")
+        dbg.print("{0} project_dir not found".format(project_dir))
         return process_end( dbg, info )
 
     if not os.path.isfile(original_movie_path):
-        dbg.print("original_movie_path not found")
+        dbg.print("{0} original_movie_path not found".format(original_movie_path))
         return process_end( dbg, info )
     
     is_invert_mask = False
