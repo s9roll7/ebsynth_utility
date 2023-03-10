@@ -73,6 +73,7 @@ class Script(scripts.Script):
     is_invert_mask = False
     controlnet_weight = 0.5
     controlnet_weight_for_face = 0.5
+    add_tag_replace_underscore = False
 
 
 # The title of the script. This is what will be displayed in the dropdown menu.
@@ -124,6 +125,7 @@ class Script(scripts.Script):
             with gr.Accordion("Auto Tagging option"):
                 auto_tag_mode = gr.Dropdown(choices=["None","DeepDanbooru","CLIP"], value="None" ,label="Auto Tagging")
                 add_tag_to_head = gr.Checkbox(False, label="Add additional prompts to the head")
+                add_tag_replace_underscore = gr.Checkbox(False, label="Replace '_' with ' '(Does not affect the function to add tokens using add_token.txt.)")
                 gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                         The results are stored in timestamp_prompts.txt.<br>\
                         If you want to use the same tagging results the next time you run img2img, rename the file to prompts.txt<br>\
@@ -142,6 +144,7 @@ class Script(scripts.Script):
                             If loading of the Yolov5_anime model fails, check\
                             <font color=\"blue\"><a href=\"https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/2235\">[this]</a></font> solution.\
                             </p>")
+                face_crop_resolution = gr.Slider(minimum=128, maximum=2048, step=1, value=512, label="Face Crop Resolution")
                 max_crop_size = gr.Slider(minimum=0, maximum=2048, step=1, value=1024, label="Max Crop Size")
                 face_denoising_strength = gr.Slider(minimum=0.00, maximum=1.00, step=0.01, value=0.5, label="Face Denoising Strength")
                 face_area_magnification = gr.Slider(minimum=1.00, maximum=10.00, step=0.01, value=1.5, label="Face Area Magnification ")
@@ -154,7 +157,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time,use_preprocess_img]
+        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time,use_preprocess_img]
 
 
     def detect_face_from_img(self, img_array):
@@ -292,11 +295,11 @@ class Script(scripts.Script):
         resized = []
         for face_img in face_imgs:
             if face_img.shape[1] < face_img.shape[0]:
-                re_w = 512
-                re_h = int(x_ceiling( (512 / face_img.shape[1]) * face_img.shape[0] , 64))
+                re_w = self.face_crop_resolution
+                re_h = int(x_ceiling( (self.face_crop_resolution / face_img.shape[1]) * face_img.shape[0] , 64))
             else:
-                re_w = int(x_ceiling( (512 / face_img.shape[0]) * face_img.shape[1] , 64))
-                re_h = 512
+                re_w = int(x_ceiling( (self.face_crop_resolution / face_img.shape[0]) * face_img.shape[1] , 64))
+                re_h = self.face_crop_resolution
             
             face_img = resize_img(face_img, re_w, re_h)
             resized.append( Image.fromarray(face_img))
@@ -590,6 +593,10 @@ class Script(scripts.Script):
         add_list_path = os.path.join(self.prompts_dir, "add_token.txt") 
         if not os.path.isfile(add_list_path):
             print(add_list_path + " not found.")
+
+            if self.add_tag_replace_underscore:
+                token_list = [ (x[0].replace("_"," "), x[1], x[2]) for x in token_list ]
+
             return token_list
         
         if not self.calc_parser:
@@ -648,6 +655,9 @@ class Script(scripts.Script):
                             print("score = " + str(score))
                             result_list.append( ( add_item["token"][0], score, add_item["type"] ) )
             
+            if self.add_tag_replace_underscore:
+                token_list = [ (x[0].replace("_"," "), x[1], x[2]) for x in token_list ]
+
             token_list = token_list + result_list
 
         return token_list
@@ -731,14 +741,13 @@ class Script(scripts.Script):
             p.control_net_module = "none"
         return process_images(p)
 
-
 # This is where the additional processing is implemented. The parameters include
 # self, the model object "p" (a StableDiffusionProcessing class, see
 # processing.py), and the parameters returned by the ui method.
 # Custom functions can be defined here, and additional libraries can be imported 
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
-    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, is_facecrop, face_detection_method, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time, use_preprocess_img):
+    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time, use_preprocess_img):
         args = locals()
 
         if not os.path.isdir(project_dir):
@@ -747,6 +756,9 @@ class Script(scripts.Script):
         
         self.controlnet_weight = controlnet_weight
         self.controlnet_weight_for_face = controlnet_weight_for_face
+
+        self.add_tag_replace_underscore = add_tag_replace_underscore
+        self.face_crop_resolution = face_crop_resolution
         
         if p.seed == -1:
             p.seed = int(random.randrange(4294967294))
