@@ -97,6 +97,7 @@ class Script(scripts.Script):
         with gr.Column(variant='panel'):
             with gr.Column():
                 project_dir = gr.Textbox(label='Project directory', lines=1)
+                generation_test = gr.Checkbox(False, label="Generation TEST!!(Ignore Project directory and use the image and mask specified in the main UI)")
 
             with gr.Accordion("Mask option"):
                 mask_mode = gr.Dropdown(choices=["Normal","Invert","None","Don't Override"], value="Normal" ,label="Mask Mode(Override img2img Mask mode)")
@@ -157,7 +158,7 @@ class Script(scripts.Script):
                         value = "face close up,"
                     )
 
-        return [project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time,use_preprocess_img]
+        return [project_dir, generation_test, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time,use_preprocess_img]
 
 
     def detect_face_from_img(self, img_array):
@@ -747,12 +748,38 @@ class Script(scripts.Script):
 # Custom functions can be defined here, and additional libraries can be imported 
 # to be used in processing. The return value should be a Processed object, which is
 # what is returned by the process_images method.
-    def run(self, p, project_dir, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time, use_preprocess_img):
+    def run(self, p, project_dir, generation_test, mask_mode, inpaint_area, use_depth, img2img_repeat_count, inc_seed, auto_tag_mode, add_tag_to_head, add_tag_replace_underscore, is_facecrop, face_detection_method, face_crop_resolution, max_crop_size, face_denoising_strength, face_area_magnification, enable_face_prompt, face_prompt, controlnet_weight, controlnet_weight_for_face, disable_facecrop_lpbk_last_time, use_preprocess_img):
         args = locals()
 
-        if not os.path.isdir(project_dir):
-            print("project_dir not found")
-            return Processed()
+        if generation_test:
+            print("generation_test")
+            test_proj_dir = os.path.join( get_my_dir() , "generation_test_proj")
+            os.makedirs(test_proj_dir, exist_ok=True)
+            test_video_key_path = os.path.join( test_proj_dir , "video_key")
+            os.makedirs(test_video_key_path, exist_ok=True)
+            test_video_mask_path = os.path.join( test_proj_dir , "video_mask")
+            os.makedirs(test_video_mask_path, exist_ok=True)
+
+            controlnet_input_path = os.path.join(test_proj_dir, "controlnet_input")
+            if os.path.isdir(controlnet_input_path):
+                shutil.rmtree(controlnet_input_path)
+
+            remove_pngs_in_dir(test_video_key_path)
+            remove_pngs_in_dir(test_video_mask_path)
+
+            test_base_img = p.init_images[0]
+            test_mask = p.image_mask
+
+            if test_base_img:
+                test_base_img.save( os.path.join( test_video_key_path , "00001.png") )
+            if test_mask:
+                test_mask.save( os.path.join( test_video_mask_path , "00001.png") )
+            
+            project_dir = test_proj_dir
+        else:
+            if not os.path.isdir(project_dir):
+                print("project_dir not found")
+                return Processed()
         
         self.controlnet_weight = controlnet_weight
         self.controlnet_weight_for_face = controlnet_weight_for_face
