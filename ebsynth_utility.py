@@ -106,7 +106,7 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         dbg.print("5. I recommend to fill in the \"Width\" field with [" + str(img_width) + "]" )
         dbg.print("6. I recommend to fill in the \"Height\" field with [" + str(img_height) + "]" )
         dbg.print("7. I recommend to fill in the \"Denoising strength\" field with lower than 0.35" )
-        dbg.print("   (It's okay to put a Large value in \"Face Denoising Strength\")")
+        dbg.print("   (When using controlnet together, you can put in large values (even 1.0 is possible).)")
         dbg.print("8. Fill in the remaining configuration fields of img2img. No image and mask settings are required.")
         dbg.print("9. Drop any image onto the img2img main screen. This is necessary to avoid errors, but does not affect the results of img2img.")
         dbg.print("10. Generate")

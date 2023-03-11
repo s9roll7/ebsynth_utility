@@ -43,12 +43,16 @@
   [Here](sample/) is the actual configuration file used. placed in "Project directory" for use.  
 <div><video controls src="https://user-images.githubusercontent.com/118420657/218247633-ab2b1e6b-d81c-4f1d-af8a-6a97df23be0e.mp4" muted="false"></video></div>
 
+<br>
 
 ## Installation
 - Install [ffmpeg](https://ffmpeg.org/) for your operating system
   (https://www.geeksforgeeks.org/how-to-install-ffmpeg-on-windows/)
 - Install [Ebsynth](https://ebsynth.com/)
 - Use the Extensions tab of the webui to [Install from URL]
+
+<br>
+<br>
 
 ## Usage
 - Go to [Ebsynth Utility] tab.
@@ -60,7 +64,10 @@
   Progress during the process is not reflected in webui, so please check the console screen.
   If you see "completed." in webui, it is completed.  
 (In the current latest webui, it seems to cause an error if you do not drop the image on the main screen of img2img.  
-Please drop the image as it does not affect the result.)
+Please drop the image as it does not affect the result.)  
+
+<br>
+<br>
 
 ## Note 1
 For reference, here's what I did when I edited a 1280x720 30fps 15sec video based on
@@ -89,7 +96,7 @@ Here is the settings I used.
   
 Here is the settings for extension.  
 - Mask Mode(Override img2img Mask mode) : Normal
-- Img2Img Repeat Count : 5  
+- Img2Img Repeat Count (Loop Back) : 5  
 - Add N to seed when repeating : 1
 - use Face Crop img2img : True  
 - Face Detection Method : YuNet  
@@ -108,6 +115,14 @@ If you have lots of memory to spare, increasing the width and height values whil
 This extension may help with the adjustment.  
 https://github.com/s9roll7/img2img_for_all_method  
 
+<br>
+
+**The information above is from a time when there was no controlnet.  
+When controlnet are used together (especially multi-controlnets),
+Even setting "Denoising strength" to a high value works well, and even setting it to 1.0 produces meaningful results.  
+If "Denoising strength" is set to a high value, "Loop Back" can be set to 1.**  
+
+<br>
 
 #### Stage 4
 Scale it up or down and process it to exactly the same size as the original video.  
@@ -137,7 +152,27 @@ In my case, the entire process from 1 to 7 took about 30 minutes.
 - Crossfade blend rate : 1.0  
 - Export type : mp4  
 
-## Note 2 : How to use clipseg
+<br>
+<br>
+
+## Note 2 : How to use multi-controlnet together  
+#### in webui setting  
+![controlnet_setting](imgs/controlnet_setting.png "controlnet_setting")
+<br>
+#### In controlnet settings in img2img tab(for controlnet 0)  
+![controlnet_0](imgs/controlnet_0.png "controlnet_0")
+<br>
+#### In controlnet settings in img2img tab(for controlnet 1)  
+![controlnet_1](imgs/controlnet_1.png "controlnet_1")
+<br>
+#### In ebsynth_utility settings in img2img tab  
+**Warning : "Weight" in the controlnet settings is overridden by the following values**
+![controlnet_option_in_ebsynthutil](imgs/controlnet_option_in_ebsynthutil.png "controlnet_option_in_ebsynthutil")
+
+<br>
+<br>
+
+## Note 3 : How to use clipseg  
 ![clipseg](imgs/clipseg.png "How to use clipseg")
 
 
