@@ -64,7 +64,7 @@ def merge_bg_src(base_frame_dir, bg_dir, frame_mask_path, tmp_dir, bg_type, mask
 def extract_frames(movie_path , output_dir, fps):
     png_path = os.path.join(output_dir , "%05d.png")
     # ffmpeg.exe -ss 00:00:00  -y -i %1 -qscale 0 -f image2 -c:v png "%05d.png"
-    subprocess.call("ffmpeg.exe -ss 00:00:00  -y -i " + movie_path + " -vf fps=" + str( round(fps, 2)) + " -qscale 0 -f image2 -c:v png " + png_path, shell=True)
+    subprocess.call("ffmpeg -ss 00:00:00  -y -i " + movie_path + " -vf fps=" + str( round(fps, 2)) + " -qscale 0 -f image2 -c:v png " + png_path, shell=True)
 
 def ebsynth_utility_stage8(dbg, project_args, bg_src, bg_type, mask_blur_size, mask_threshold, fg_transparency, export_type):
     dbg.print("stage8")

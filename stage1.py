@@ -147,7 +147,13 @@ def create_mask_clipseg(input_dir, output_dir, clipseg_mask_prompt, clipseg_excl
 def create_mask_transparent_background(input_dir, output_dir, tb_use_fast_mode, tb_use_jit, st1_mask_threshold):
     fast_str = " --fast" if tb_use_fast_mode else ""
     jit_str = " --jit" if tb_use_jit else ""
-    subprocess.call("venv\\Scripts\\transparent-background --source " + input_dir + " --dest " + output_dir + " --type map" + fast_str + jit_str, shell=True)
+    bin_path = os.path.join("venv", "Scripts")
+    bin_path = os.path.join(bin_path, "transparent-background")
+
+    if os.path.isfile(bin_path) or os.path.isfile(bin_path + ".exe"):
+        subprocess.call(bin_path + " --source " + input_dir + " --dest " + output_dir + " --type map" + fast_str + jit_str, shell=True)
+    else:
+        subprocess.call("transparent-background --source " + input_dir + " --dest " + output_dir + " --type map" + fast_str + jit_str, shell=True)
 
     mask_imgs = glob.glob( os.path.join(output_dir, "*.png") )
     
@@ -194,7 +200,7 @@ def ebsynth_utility_stage1(dbg, project_args, frame_width, frame_height, st1_mas
 
         png_path = os.path.join(frame_path , "%05d.png")
         # ffmpeg.exe -ss 00:00:00  -y -i %1 -qscale 0 -f image2 -c:v png "%05d.png"
-        subprocess.call("ffmpeg.exe -ss 00:00:00  -y -i " + original_movie_path + " -qscale 0 -f image2 -c:v png " + png_path, shell=True)
+        subprocess.call("ffmpeg -ss 00:00:00  -y -i " + original_movie_path + " -qscale 0 -f image2 -c:v png " + png_path, shell=True)
 
         dbg.print("frame extracted")
 
