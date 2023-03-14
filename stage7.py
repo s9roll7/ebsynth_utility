@@ -38,7 +38,7 @@ def create_movie_from_frames( dir, start, end, number_of_digits, fps, output_pat
 
 def search_out_dirs(proj_dir, blend_rate):
     ### create out_dirs
-    p = re.compile(r'.*[\\/]out\-([0-9]+)[\\/]')
+    p = re.compile(r'.*[\\\/]out\-([0-9]+)[\\\/]')
 
     number_of_digits = -1
     
