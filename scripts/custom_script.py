@@ -940,6 +940,11 @@ class Script(scripts.Script):
         # img2img
         for img, mask, controlnet_input_img, face_coords, prompts in zip(imgs, masks, controlnet_input_imgs, face_coords_dict.values(), prompts_dict.values()):
 
+            # Generation cancelled.
+            if shared.state.interrupted:
+                print("Generation cancelled.")
+                break
+
             image = Image.open(img)
             mask_image = Image.open(mask) if mask else None
 
