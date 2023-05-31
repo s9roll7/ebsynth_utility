@@ -147,9 +147,9 @@ def create_mask_clipseg(input_dir, output_dir, clipseg_mask_prompt, clipseg_excl
 def create_mask_transparent_background(input_dir, output_dir, tb_use_fast_mode, tb_use_jit, st1_mask_threshold):
     fast_str = " --fast" if tb_use_fast_mode else ""
     jit_str = " --jit" if tb_use_jit else ""
-    venv = os.environ['VIRTUAL_ENV']
-    if not venv:
-        venv = "venv"
+    venv = "venv"
+    if 'VIRTUAL_ENV' in os.environ:
+        venv = os.environ['VIRTUAL_ENV']
     bin_path = os.path.join(venv, "Scripts")
     bin_path = os.path.join(bin_path, "transparent-background")
 
