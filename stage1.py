@@ -148,6 +148,8 @@ def create_mask_transparent_background(input_dir, output_dir, tb_use_fast_mode, 
     fast_str = " --fast" if tb_use_fast_mode else ""
     jit_str = " --jit" if tb_use_jit else ""
     venv = os.environ['VIRTUAL_ENV']
+    if not venv:
+        venv = "venv"
     bin_path = os.path.join(venv, "Scripts")
     bin_path = os.path.join(bin_path, "transparent-background")
 
