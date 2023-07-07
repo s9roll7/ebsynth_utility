@@ -1,1 +1,1 @@
-<iframe src="//player.bilibili.com/player.html?aid=315669178&bvid=BV1kP411C7j2&cid=1188472064&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+https://www.bilibili.com/video/BV1Ts4y1k7iV/?spm_id_from=autoNext&vd_source=a393330e181e1c8aee8ca010b6cd24ca
