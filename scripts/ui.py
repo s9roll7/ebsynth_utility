@@ -34,26 +34,28 @@ def on_ui_tabs():
                                     gr.HTML(value="<p style='margin-bottom: 1.2em'>\
                                             -1 means that it is calculated automatically. If both are -1, the size will be the same as the source size. \
                                             </p>")
+                                    with gr.Accordion(label="mask options",open=False):
+                                      
+                                            mask_mode =gr.Radio(label='mask mode', choices=["Normal","Invert","None"], value="None")
+                                            st1_masking_method_index = gr.Radio(label='Masking Method', choices=["transparent-background","clipseg","transparent-background AND clipseg"], value="transparent-background", type="index")
 
-                                    st1_masking_method_index = gr.Radio(label='Masking Method', choices=["transparent-background","clipseg","transparent-background AND clipseg"], value="transparent-background", type="index")
+                                            with gr.Accordion(label="transparent-background options"):
+                                                st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
 
-                                    with gr.Accordion(label="transparent-background options"):
-                                        st1_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.0)
+                                                # https://pypi.org/project/transparent-background/
+                                                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                                                        configuration for \
+                                                        <font color=\"blue\"><a href=\"https://pypi.org/project/transparent-background\">[transparent-background]</a></font>\
+                                                        </p>")
+                                                tb_use_fast_mode = gr.Checkbox(label="Use Fast Mode(It will be faster, but the quality of the mask will be lower.)", value=False)
+                                                tb_use_jit = gr.Checkbox(label="Use Jit", value=False)
 
-                                        # https://pypi.org/project/transparent-background/
-                                        gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                                                configuration for \
-                                                <font color=\"blue\"><a href=\"https://pypi.org/project/transparent-background\">[transparent-background]</a></font>\
-                                                </p>")
-                                        tb_use_fast_mode = gr.Checkbox(label="Use Fast Mode(It will be faster, but the quality of the mask will be lower.)", value=False)
-                                        tb_use_jit = gr.Checkbox(label="Use Jit", value=False)
-
-                                    with gr.Accordion(label="clipseg options"):
-                                        clipseg_mask_prompt = gr.Textbox(label='Mask Target (e.g., girl, cats)', lines=1)
-                                        clipseg_exclude_prompt = gr.Textbox(label='Exclude Target (e.g., finger, book)', lines=1)
-                                        clipseg_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.4)
-                                        clipseg_mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(MedianBlur)', value=11)
-                                        clipseg_mask_blur_size2 = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(GaussianBlur)', value=11)
+                                            with gr.Accordion(label="clipseg options"):
+                                                clipseg_mask_prompt = gr.Textbox(label='Mask Target (e.g., girl, cats)', lines=1)
+                                                clipseg_exclude_prompt = gr.Textbox(label='Exclude Target (e.g., finger, book)', lines=1)
+                                                clipseg_mask_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Mask Threshold', value=0.4)
+                                                clipseg_mask_blur_size = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(MedianBlur)', value=11)
+                                                clipseg_mask_blur_size2 = gr.Slider(minimum=0, maximum=150, step=1, label='Mask Blur Kernel Size(GaussianBlur)', value=11)
 
                                 with gr.TabItem(label="stage 2", elem_id='ebs_configuration_tab2'):
                                     key_min_gap = gr.Slider(minimum=0, maximum=500, step=1, label='Minimum keyframe gap', value=10)
@@ -62,6 +64,7 @@ def on_ui_tabs():
                                     key_add_last_frame = gr.Checkbox(label="Add last frame to keyframes", value=True)
 
                                 with gr.TabItem(label="stage 3.5", elem_id='ebs_configuration_tab3_5'):
+
                                     gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                                             <font color=\"blue\"><a href=\"https://github.com/hahnec/color-matcher\">[color-matcher]</a></font>\
                                             </p>")
@@ -77,6 +80,35 @@ def on_ui_tabs():
                                     st3_5_use_mask_org = gr.Checkbox(label="Apply mask to original image", value=False)
                                     #st3_5_number_of_itr = gr.Slider(minimum=1, maximum=10, step=1, label='Number of iterations', value=1)
 
+                                
+                                
+                                with gr.TabItem(label="stage 5", elem_id='ebs_configuration_tab5'):
+                                #     "key_weight" : 1.0,
+                                #     "video_weight" : 4.0,
+                                #     "mask_weight" : 1.0,
+                                #     "adv_mapping" : 10.0,
+                                #     "adv_de-flicker" : 1.0,
+                                #     "adv_diversity" : 3500.0,
+                                #     "adv_detail" : 1,   # high
+                                #     "adv_gpu" : 1,      # use gpu"
+      
+    
+                                   
+                                     key_weight = gr.Textbox(label='key_weight', lines=1,value=1.0)
+                                     video_weight = gr.Textbox(label='video_weight', lines=1,value=4.0)
+                                     mask_weight = gr.Textbox(label='mask_weight', lines=1,value=1.0)
+                                     adv_mapping = gr.Textbox(label='adv_mapping', lines=1,value=10.0)
+                                     adv_de_flicker = gr.Textbox(label='adv_de-flicker', lines=1,value=1.0)
+                                     dv_diversity = gr.Textbox(label='dv_diversity', lines=1,value=3500.0)
+                                     adv_detail =gr.Radio(label='synthesis detial',choices=["high","medium","low","carbage"], value="medium",type="index")
+                                     adv_gpu = gr.Checkbox(label='use gpu——【YES/NO】',value=True,lines=3)
+                                    
+                                     
+                                
+                                
+                                
+                                
+                                
                                 with gr.TabItem(label="stage 7", elem_id='ebs_configuration_tab7'):
                                     blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
                                     export_type = gr.Dropdown(choices=["mp4","webm","gif","rawvideo"], value="mp4" ,label="Export type")
@@ -89,8 +121,8 @@ def on_ui_tabs():
                                     #is_transparent = gr.Checkbox(label="Is Transparent", value=True, visible = False)
                                     fg_transparency = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Foreground Transparency', value=0.0)
 
-                                with gr.TabItem(label="etc", elem_id='ebs_configuration_tab_etc'):
-                                    mask_mode = gr.Dropdown(choices=["Normal","Invert","None"], value="Normal" ,label="Mask Mode")
+                                # with gr.TabItem(label="etc", elem_id='ebs_configuration_tab_etc'):
+                                #     mask_mode = gr.Dropdown(choices=["Normal","Invert","None"], value="Normal" ,label="Mask Mode")
 
                     with gr.Column(variant='panel'):
                         with gr.Column(scale=1):
@@ -181,6 +213,19 @@ def on_ui_tabs():
                     fg_transparency,
 
                     mask_mode,
+
+                      
+                    key_weight,
+                    video_weight ,
+                    mask_weight ,
+                    adv_mapping,
+                    adv_de_flicker,
+                    dv_diversity,
+                    adv_detail,
+                    adv_gpu,
+               
+
+                    
 
                 ],
                 outputs=[
