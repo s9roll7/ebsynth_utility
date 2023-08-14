@@ -11,9 +11,10 @@
   
 <br>
 
-###### I made a new extension to make videos in a different way than this extension. You can use it if you like.  
-###### [sd_loopback_music_sync_wave](https://github.com/s9roll7/sd_loopback_music_sync_wave)  
-<div><video controls src="https://github.com/s9roll7/ebsynth_utility/assets/118420657/6193de8f-534b-4c71-9a20-99e7c98adf6e" muted="false"></video></div>
+###### I modified animatediff-cli to create a txt2video tool that allows flexible prompt specification. You can use it if you like.  
+###### [animatediff-cli-prompt-travel](https://github.com/s9roll7/animatediff-cli-prompt-travel)  
+<div><video controls src="https://github.com/s9roll7/animatediff-cli-prompt-travel/assets/118420657/2f1de542-7084-417b-9baa-59a55fdd0e1b" muted="false"></video></div>
+
 
 <br>  
   
