@@ -91,15 +91,8 @@ def on_ui_tabs():
 
                                 with gr.TabItem(label="etc", elem_id='ebs_configuration_tab_etc'):
                                     mask_mode = gr.Dropdown(choices=["Normal","Invert","None"], value="Normal" ,label="Mask Mode")
-
-                    with gr.Column(variant='panel'):
-                        with gr.Column(scale=1):
-                            with gr.Group():
-                                debug_info = gr.HTML(elem_id="ebs_info_area", value=".")
-
-                            with gr.Column(scale=2):
-                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 3.5","stage 4","stage 5","stage 6","stage 7","stage 8"], value="stage 1", type="index")
-                                gr.HTML(value="<p style='margin-bottom: 0.7em'>\
+                        with gr.TabItem('info', elem_id='ebs_info'):
+                            gr.HTML(value="<p style='margin-bottom: 0.7em'>\
                                                 The process of creating a video can be divided into the following stages.<br>\
                                                 (Stage 3, 4, and 6 only show a guide and do nothing actual processing.)<br><br>\
                                                 <b>stage 1</b> <br>\
@@ -131,13 +124,20 @@ def on_ui_tabs():
                                                     If you have already created a background video in Invert Mask Mode([Ebsynth Utility]->[configuration]->[etc]->[Mask Mode]),<br>\
                                                     You can specify \"path_to_project_dir/inv/crossfade_tmp\".<br>\
                                                 </p>")
+
+                    with gr.Column(variant='panel'):
+                        with gr.Column(scale=1):
+                            with gr.Row():
+                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 3.5","stage 4","stage 5","stage 6","stage 7","stage 8"], value="stage 1", type="index", elem_id='ebs_stages')
                             
                             with gr.Row():
                                 generate_btn = gr.Button('Generate', elem_id="ebs_generate_btn", variant='primary')
                             
                             with gr.Group():
-                                html_info = gr.HTML()
+                                debug_info = gr.HTML(elem_id="ebs_info_area", value=".")
 
+                            with gr.Column(scale=2):
+                                html_info = gr.HTML()                                                                                
 
             ebs_args = dict(
                 fn=wrap_gradio_gpu_call(ebsynth_utility_process),
@@ -193,7 +193,4 @@ def on_ui_tabs():
            
     return (ebs_interface, "Ebsynth Utility", "ebs_interface"),
 
-
-
 script_callbacks.on_ui_tabs(on_ui_tabs)
-
