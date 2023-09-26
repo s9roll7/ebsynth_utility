@@ -158,6 +158,8 @@ def create_mask_transparent_background(input_dir, output_dir, tb_use_fast_mode, 
         pbar_original_imgs.set_description('{}'.format(base_name))
         img = Image.open(m).convert('RGB')
         out = remover.process(img, type='map')
+        if isinstance(out,Image.Image):
+            out = np.array(out)
         out[out < int( 255 * st1_mask_threshold )] = 0
         cv2.imwrite(os.path.join(output_dir, base_name), out)
 
