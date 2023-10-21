@@ -104,7 +104,7 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         dbg.print("2. Generate")
         dbg.print("(Images are output to " + img2img_key_path + ")")
         dbg.print("")
-        dbg.print("This tab will be changed to create a GRID (main 1x1 — max 3x3)")
+        dbg.print("This tab will be changed to create a GRID (min 1x1 — max 3x3)")
         dbg.print("")
         dbg.print("If you know how to do it and want to help, create the PR")
         return process_end( dbg, "" )
