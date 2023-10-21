@@ -6,12 +6,12 @@ import cv2
 import glob
 from PIL import Image
 
-from extensions.ebsynth_utility.stage1 import ebsynth_utility_stage1,ebsynth_utility_stage1_invert
-from extensions.ebsynth_utility.stage2 import ebsynth_utility_stage2
-from extensions.ebsynth_utility.stage5 import ebsynth_utility_stage5
-from extensions.ebsynth_utility.stage7 import ebsynth_utility_stage7
-from extensions.ebsynth_utility.stage8 import ebsynth_utility_stage8
-from extensions.ebsynth_utility.stage3_5 import ebsynth_utility_stage3_5
+from extensions.ebsynth_utility_lite.stage1 import ebsynth_utility_stage1,ebsynth_utility_stage1_invert
+from extensions.ebsynth_utility_lite.stage2 import ebsynth_utility_stage2
+from extensions.ebsynth_utility_lite.stage5 import ebsynth_utility_stage5
+from extensions.ebsynth_utility_lite.stage7 import ebsynth_utility_stage7
+from extensions.ebsynth_utility_lite.stage8 import ebsynth_utility_stage8
+from extensions.ebsynth_utility_lite.stage3_5 import ebsynth_utility_stage3_5
 
 
 def x_ceiling(value, step):
