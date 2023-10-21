@@ -22,7 +22,7 @@ def on_ui_tabs():
                                 return video
                             org_video.upload(fn_upload_org_video, org_video, original_movie_path)
                             gr.HTML(value="<p style='margin-bottom: 1.2em'>\
-                                    If you have trouble entering the video path manually, you can also use drag and drop.For large videos, please enter the path manually. \
+                                    If you have trouble entering the video path manually, you can also use drag and drop. \
                                     </p>")
 
                         with gr.TabItem('configuration', elem_id='ebs_configuration'):
