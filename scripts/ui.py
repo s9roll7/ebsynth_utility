@@ -110,7 +110,7 @@ def on_ui_tabs():
                     with gr.Column(variant='panel'):
                         with gr.Column(scale=1):
                             with gr.Row():
-                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 3.5","stage 4","stage 5","stage 6","stage 7","stage 8"], value="stage 1", type="index", elem_id='ebs_stages')
+                                stage_index = gr.Radio(label='Process Stage', choices=["stage 1","stage 2","stage 3","stage 4","stage 5","stage 6","stage 7","stage 8"], value="stage 1", type="index", elem_id='ebs_stages')
                             
                             with gr.Row():
                                 generate_btn = gr.Button('Generate', elem_id="ebs_generate_btn", variant='primary')
