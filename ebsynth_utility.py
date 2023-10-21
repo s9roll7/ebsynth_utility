@@ -6,11 +6,12 @@ import cv2
 import glob
 from PIL import Image
 
-from extensions.ebsynth_utility_lite.stage1 import ebsynth_utility_stage1,ebsynth_utility_stage1_invert
-from extensions.ebsynth_utility_lite.stage2 import ebsynth_utility_stage2
-from extensions.ebsynth_utility_lite.stage5 import ebsynth_utility_stage5
-from extensions.ebsynth_utility_lite.stage7 import ebsynth_utility_stage7
-from extensions.ebsynth_utility_lite.stage8 import ebsynth_utility_stage8
+from extensions.ebsynth_utility.stage1 import ebsynth_utility_stage1,ebsynth_utility_stage1_invert
+from extensions.ebsynth_utility.stage2 import ebsynth_utility_stage2
+from extensions.ebsynth_utility.stage5 import ebsynth_utility_stage5
+from extensions.ebsynth_utility.stage7 import ebsynth_utility_stage7
+from extensions.ebsynth_utility.stage8 import ebsynth_utility_stage8
+from extensions.ebsynth_utility.stage3_5 import ebsynth_utility_stage3_5
 
 
 def x_ceiling(value, step):
@@ -29,7 +30,7 @@ class debug_string:
     def to_string(self):
         return self.txt
 
-def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
+def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, color_matcher_method:str, st3_5_use_mask:bool, st3_5_use_mask_ref:bool, st3_5_use_mask_org:bool, color_matcher_ref_type:int, color_matcher_ref_image:Image, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
     args = locals()
     info = ""
     info = dump_dict(info, args)
@@ -97,17 +98,25 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
 
         dbg.print("stage 3")
         dbg.print("")
-        dbg.print("This is an information button, it does not do anything")
-        dbg.print("")
+        dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         dbg.print("1. Go to img2img tab")
-        dbg.print("2. Generate")
-        dbg.print("(Images are output to " + img2img_key_path + ")")
-        dbg.print("")
-        dbg.print("This tab will be changed to create a GRID (min 1x1 — max 3x3)")
-        dbg.print("")
-        dbg.print("If you know how to do it and want to help, create the PR")
+        dbg.print("2. Select [ebsynth utility] in the script combo box")
+        dbg.print("3. Fill in the \"Project directory\" field with [" + project_dir + "]" )
+        dbg.print("4. Select in the \"Mask Mode(Override img2img Mask mode)\" field with [" + ("Invert" if is_invert_mask else "Normal") + "]" )
+        dbg.print("5. I recommend to fill in the \"Width\" field with [" + str(img_width) + "]" )
+        dbg.print("6. I recommend to fill in the \"Height\" field with [" + str(img_height) + "]" )
+        dbg.print("7. I recommend to fill in the \"Denoising strength\" field with lower than 0.35" )
+        dbg.print("   (When using controlnet together, you can put in large values (even 1.0 is possible).)")
+        dbg.print("8. Fill in the remaining configuration fields of img2img. No image and mask settings are required.")
+        dbg.print("9. Drop any image onto the img2img main screen. This is necessary to avoid errors, but does not affect the results of img2img.")
+        dbg.print("10. Generate")
+        dbg.print("(Images are output to [" + img2img_key_path + "])")
+        dbg.print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return process_end( dbg, "" )
     
+    elif stage_index == 3:
+        ebsynth_utility_stage3_5(dbg, project_args, color_matcher_method, st3_5_use_mask, st3_5_use_mask_ref, st3_5_use_mask_org, color_matcher_ref_type, color_matcher_ref_image)
+
     elif stage_index == 4:
         sample_image = glob.glob( os.path.join(frame_path , "*.png" ) )[0]
         img_height, img_width, _ = cv2.imread(sample_image).shape

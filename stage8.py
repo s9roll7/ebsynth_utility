@@ -7,7 +7,7 @@ import time
 import cv2
 import numpy as np
 import itertools
-from extensions.ebsynth_utility_lite.stage7 import create_movie_from_frames, get_ext, trying_to_add_audio
+from extensions.ebsynth_utility.stage7 import create_movie_from_frames, get_ext, trying_to_add_audio
 
 def clamp(n, smallest, largest):
     return sorted([smallest, n, largest])[1]
