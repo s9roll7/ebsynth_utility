@@ -8,7 +8,7 @@ from sys import byteorder
 import binascii
 import numpy as np
 
-SYNTHS_PER_PROJECT = 15
+SYNTHS_PER_PROJECT = 25
 
 def to_float_bytes(f):
     if byteorder == 'little':
