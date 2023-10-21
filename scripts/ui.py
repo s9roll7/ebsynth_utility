@@ -191,6 +191,6 @@ def on_ui_tabs():
             )
             generate_btn.click(**ebs_args)
            
-    return (ebs_interface, "Ebsynth Utility", "ebs_interface"),
+    return (ebs_interface, "Ebsynth Utility Lite", "ebs_interface"),
 
 script_callbacks.on_ui_tabs(on_ui_tabs)
