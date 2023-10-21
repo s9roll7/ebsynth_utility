@@ -26,6 +26,3 @@ if not launch.is_installed("IPython"):
 if not launch.is_installed("seaborn"):
     launch.run_pip("install ""seaborn>=0.11.0""", "requirements for Ebsynth Utility Lite")
 
-if not launch.is_installed("color_matcher"):
-    launch.run_pip("install color-matcher", "requirements for Ebsynth Utility Lite")
-

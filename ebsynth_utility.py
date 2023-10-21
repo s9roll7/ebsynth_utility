@@ -11,7 +11,6 @@ from extensions.ebsynth_utility_lite.stage2 import ebsynth_utility_stage2
 from extensions.ebsynth_utility_lite.stage5 import ebsynth_utility_stage5
 from extensions.ebsynth_utility_lite.stage7 import ebsynth_utility_stage7
 from extensions.ebsynth_utility_lite.stage8 import ebsynth_utility_stage8
-from extensions.ebsynth_utility_lite.stage3_5 import ebsynth_utility_stage3_5
 
 
 def x_ceiling(value, step):
@@ -30,7 +29,7 @@ class debug_string:
     def to_string(self):
         return self.txt
 
-def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, color_matcher_method:str, st3_5_use_mask:bool, st3_5_use_mask_ref:bool, st3_5_use_mask_org:bool, color_matcher_ref_type:int, color_matcher_ref_image:Image, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
+def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_path:str, frame_width:int, frame_height:int, st1_masking_method_index:int, st1_mask_threshold:float, tb_use_fast_mode:bool, tb_use_jit:bool, clipseg_mask_prompt:str, clipseg_exclude_prompt:str, clipseg_mask_threshold:int, clipseg_mask_blur_size:int, clipseg_mask_blur_size2:int, key_min_gap:int, key_max_gap:int, key_th:float, key_add_last_frame:bool, blend_rate:float, export_type:str, bg_src:str, bg_type:str, mask_blur_size:int, mask_threshold:float, fg_transparency:float, mask_mode:str):
     args = locals()
     info = ""
     info = dump_dict(info, args)
@@ -109,9 +108,6 @@ def ebsynth_utility_process(stage_index: int, project_dir:str, original_movie_pa
         dbg.print("If you know how to do it and want to help, create the PR")
         return process_end( dbg, "" )
     
-    elif stage_index == 3:
-        ebsynth_utility_stage3_5(dbg, project_args, color_matcher_method, st3_5_use_mask, st3_5_use_mask_ref, st3_5_use_mask_org, color_matcher_ref_type, color_matcher_ref_image)
-
     elif stage_index == 4:
         sample_image = glob.glob( os.path.join(frame_path , "*.png" ) )[0]
         img_height, img_width, _ = cv2.imread(sample_image).shape
