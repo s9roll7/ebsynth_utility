@@ -61,22 +61,6 @@ def on_ui_tabs():
                                     key_th = gr.Slider(minimum=0.0, maximum=100.0, step=0.1, label='Threshold of delta frame edge', value=8.5)
                                     key_add_last_frame = gr.Checkbox(label="Add last frame to keyframes", value=True)
 
-                                with gr.TabItem(label="stage 3.5", elem_id='ebs_configuration_tab3_5'):
-                                    gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                                            <font color=\"blue\"><a href=\"https://github.com/hahnec/color-matcher\">[color-matcher]</a></font>\
-                                            </p>")
-                                    
-                                    color_matcher_method = gr.Radio(label='Color Transfer Method', choices=['default', 'hm', 'reinhard', 'mvgd', 'mkl', 'hm-mvgd-hm', 'hm-mkl-hm'], value="hm-mkl-hm", type="value")
-                                    color_matcher_ref_type = gr.Radio(label='Color Matcher Ref Image Type', choices=['original video frame', 'first frame of img2img result'], value="original video frame", type="index")
-                                    gr.HTML(value="<p style='margin-bottom: 0.7em'>\
-                                            <font color=\"red\">If an image is specified below, it will be used with highest priority.</font>\
-                                            </p>")
-                                    color_matcher_ref_image = gr.Image(label="Color Matcher Ref Image", source='upload', mirror_webcam=False, type='pil')
-                                    st3_5_use_mask = gr.Checkbox(label="Apply mask to the result", value=True)
-                                    st3_5_use_mask_ref = gr.Checkbox(label="Apply mask to the Ref Image", value=False)
-                                    st3_5_use_mask_org = gr.Checkbox(label="Apply mask to original image", value=False)
-                                    #st3_5_number_of_itr = gr.Slider(minimum=1, maximum=10, step=1, label='Number of iterations', value=1)
-
                                 with gr.TabItem(label="stage 7", elem_id='ebs_configuration_tab7'):
                                     blend_rate = gr.Slider(minimum=0.0, maximum=1.0, step=0.01, label='Crossfade blend rate', value=1.0)
                                     export_type = gr.Dropdown(choices=["mp4","webm","gif","rawvideo"], value="mp4" ,label="Export type")
@@ -102,8 +86,6 @@ def on_ui_tabs():
                                                     Select keyframes to be given to ebsynth.<br><br>\
                                                 <b>stage 3</b> <br>\
                                                     img2img keyframes.<br><br>\
-                                                <b>stage 3.5</b> <br>\
-                                                    (this is optional. Perform color correction on the img2img results and expect flickering to decrease. Or, you can simply change the color tone from the generated result.)<br><br>\
                                                 <b>stage 4</b> <br>\
                                                     and upscale to the size of the original video.<br><br>\
                                                 <b>stage 5</b> <br>\
@@ -163,13 +145,6 @@ def on_ui_tabs():
                     key_max_gap,
                     key_th,
                     key_add_last_frame,
-
-                    color_matcher_method,
-                    st3_5_use_mask,
-                    st3_5_use_mask_ref,
-                    st3_5_use_mask_org,
-                    color_matcher_ref_type,
-                    color_matcher_ref_image,
 
                     blend_rate,
                     export_type,
