@@ -8,7 +8,7 @@ from modules.call_queue import wrap_gradio_gpu_call
 def on_ui_tabs():
 
     with gr.Blocks(analytics_enabled=False) as ebs_interface:
-        with gr.Row().style(equal_height=False):
+        with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
 
                 with gr.Row():
