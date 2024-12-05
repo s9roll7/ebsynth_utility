@@ -148,7 +148,8 @@ def create_mask_clipseg(input_dir, output_dir, clipseg_mask_prompt, clipseg_excl
 
 def create_mask_transparent_background(input_dir, output_dir, tb_use_fast_mode, tb_use_jit, st1_mask_threshold):
     from modules import devices
-    remover = Remover(fast=tb_use_fast_mode, jit=tb_use_jit, device=devices.get_optimal_device_name())
+    mode='fast' if tb_use_fast_mode else 'base'
+    remover = Remover(mode=mode, jit=tb_use_jit, device=devices.get_optimal_device_name())
 
     original_imgs = glob.glob( os.path.join(input_dir, "*.png") )
 
